@@ -1379,7 +1379,7 @@
           stats.files=(stats.files||0)+1;
           if(stats.files%80===0)await updateS1PeakScanProgress(stats);
         }
-        if(!/^w\d{4}\.(csv|ini)$/i.test(name))continue;
+        if(!/^w\d+\.(csv|ini)$/i.test(name))continue;
         if(stats)stats.wafer=(stats.wafer||0)+1;
         out.push({name,_s1RelPath:rel,_s1Handle:entry});
       }
