@@ -1005,7 +1005,8 @@
 
     function escHtml(v){return String(v??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));}
     function fileFolderPath(file,rootFolder=""){const p=s1FileRelativePath(file),i=p.lastIndexOf("/"),folder=i>=0?p.slice(0,i):"";return folder||rootFolder||"";}
-    function isWaferLogFile(file){return /^w\d+\.(csv|ini)$/i.test(fileKey(file.name||""));}
+    function isS1PeakWaferFileName(name){return /^w\d+\.(csv|ini)$/i.test(String(name||"").replace(/\\/g,"/").split("/").pop());}
+    function isWaferLogFile(file){return isS1PeakWaferFileName(fileKey(file.name||""));}
     async function parseS1PeakWaferFile(file,rootFolder=""){const key=fileKey(file.name),text=await readFileText(file);const data=key.endsWith(".ini")?parseWaferIniData(text,file.name):parseWaferCsvData(text,file.name);data.fullPath=s1FileRelativePath(file);data.folderPath=fileFolderPath(file,rootFolder);return data;}
     function s1EpisodePoints(steps){const ep=extractFirstGrindEpisode(steps||[]).filter(p=>Number.isFinite(p.relativeSec)&&Number.isFinite(p.s1Loading)&&p.s1Loading>0);if(!ep.length)return[];const t0=ep[0].relativeSec;return ep.map((p,i)=>({raw:p,index:i,x:p.relativeSec-t0,y:p.s1Loading}));}
     function s1Median(vals){return quantile(vals,.5);}
@@ -1368,8 +1369,12 @@
         stats.current=prefix;
         await updateS1PeakScanProgress(stats);
       }
-      for await(const [name,entry] of handle.entries()){
-        const rel=`${prefix}/${name}`;
+      const iter=typeof handle.entries==="function"?handle.entries():handle.values();
+      for await(const item of iter){
+        const entry=Array.isArray(item)?item[1]:item;
+        const name=Array.isArray(item)?item[0]:(entry&&entry.name)||"";
+        const entryName=(entry&&entry.name)||name;
+        const rel=`${prefix}/${entryName}`;
         if(entry.kind==="directory"){
           await collectS1PeakDirectory(entry,rel,out,stats);
           continue;
@@ -1379,37 +1384,15 @@
           stats.files=(stats.files||0)+1;
           if(stats.files%80===0)await updateS1PeakScanProgress(stats);
         }
-        if(!/^w\d+\.(csv|ini)$/i.test(name))continue;
+        if(!isS1PeakWaferFileName(entryName))continue;
         if(stats)stats.wafer=(stats.wafer||0)+1;
-        out.push({name,_s1RelPath:rel,_s1Handle:entry});
+        out.push({name:entryName,_s1RelPath:rel,_s1Handle:entry});
       }
     }
     async function openS1PeakFolder(){
       resetS1PeakFolderSelection();
-      if(window.showDirectoryPicker){
-        try{
-          const lastRoot=s1LastRootName();
-          if(lastRoot)$("lblS1PeakSummary").textContent=`S1 peak上次選擇：${lastRoot}`;
-          const handle=await window.showDirectoryPicker({id:S1_PEAK_PICKER_ID,mode:"read"});
-          saveS1LastRootName(handle.name);
-          activateTab("s1check");
-          const scanStats={root:handle.name,dirs:0,files:0,wafer:0,current:handle.name,lastUi:0};
-          setS1PeakScanProgress(scanStats);
-          await waitUiPaint();
-          const files=[];
-          await collectS1PeakDirectory(handle,handle.name,files,scanStats);
-          await updateS1PeakScanProgress(scanStats,true);
-          $("lblS1PeakSummary").textContent=`S1 peak資料夾掃描完成：${handle.name}  Wafer Log ${files.length} 筆，正在建立目錄清單...`;
-          await waitUiPaint();
-          if(!files.length){setS1PeakProgress(0,1,false);alert("找不到 Wxxxx.csv 或 Wxxxx.ini 檔案。");return;}
-          showS1FolderPicker(files);
-        }catch(err){
-          if(err&&err.name==="AbortError")return;
-          setS1PeakProgress(0,1,false);
-          alert(`S1 peak資料夾讀取失敗：${err.message||String(err)}`);
-        }
-        return;
-      }
+      const lastRoot=s1LastRootName();
+      if(lastRoot)$("lblS1PeakSummary").textContent=`S1 peak上次選擇：${lastRoot}`;
       $("s1PeakInput").click();
     }
     function showS1FolderPicker(files){
