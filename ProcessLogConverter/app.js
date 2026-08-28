@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = "1.4.14.0";
+  const VERSION = "1.4.15.0";
   const PROCESS_LOG_FILE_NAME = "ProcessLog.ini";
   const SERVER_IDX_NC3 = 2;
   const RECIPE_LEVEL_STEP_NUM = 10;
@@ -41,6 +41,13 @@
 
   const RELEASE_NOTES = `FSG-2300 ProcessLog Converter
 Release Notes
+
+[1.4.15.0] 2026-08-28
+Fixed
+Item 1
+  Stops treating one-item folder placeholder selections as missing ProcessLog.ini.
+Item 2
+  Adds folder selection diagnostics when the browser does not provide recursive child files.
 
 [1.4.14.0] 2026-08-28
 Fixed
@@ -427,7 +434,7 @@ Item 4
       return;
     }
 
-    if ("showDirectoryPicker" in window) {
+    if (hasDirectoryPicker()) {
       await selectFolderWithDirectoryPicker();
       return;
     }
@@ -545,17 +552,19 @@ Item 4
       return;
     }
 
-    if (!fileListHasRelativePaths(files)) {
+    if (fileListCannotProvideRecursiveFiles(files)) {
       resetFolderPickPending();
-      ui.statusLabel.textContent = "瀏覽器沒有提供子資料夾檔案清單，請重新按「選取資料夾」並選擇含 ProcessLog 子資料夾的根目錄";
-      window.alert("目前選取結果沒有包含子資料夾內容，無法建立資料夾勾選清單。\r\n\r\n請重新按「選取資料夾」，選擇 Desktop\\Ini 或含 ProcessLog 子資料夾的根目錄。");
+      const message = buildRecursiveFileListWarning(files);
+      ui.statusLabel.textContent = message;
+      window.alert(message);
       return;
     }
 
     if (fileListLooksLikeDirectoryPlaceholders(files)) {
       resetFolderPickPending();
-      ui.statusLabel.textContent = "瀏覽器只回傳資料夾名稱，沒有展開子資料夾檔案，請重新選取 Desktop\\Ini 根目錄";
-      window.alert("目前瀏覽器只回傳資料夾名稱，沒有讀到子資料夾裡的 ProcessLog.ini / Wxxxx.ini。\r\n\r\n請重新按「選取資料夾」，選擇 Desktop\\Ini 根目錄；若仍一樣，請改用最新版 Chrome 或重新整理頁面後再試。");
+      const message = buildRecursiveFileListWarning(files);
+      ui.statusLabel.textContent = message;
+      window.alert(message);
       return;
     }
 
@@ -573,6 +582,18 @@ Item 4
       const selectedSourceFolder = await buildSourceFromFileList(files, (completed, total, message) => {
         reportFolderLoadProgress(completed, total + 1, message, scanStartTime);
       });
+      if (!hasProcessLogFolder(selectedSourceFolder) && fileListProbablyContainsOnlyFolderNames(files, selectedSourceFolder)) {
+        clearSourceFolderName();
+        ui.sourceFolderLabel.textContent = "來源資料夾：未選取";
+        sourceFolder = null;
+        ui.progressBar.value = 0;
+        ui.remainTimeLabel.textContent = "預估剩餘時間：--:--:--";
+        const message = buildRecursiveFileListWarning(files);
+        ui.statusLabel.textContent = message;
+        ui.convertButton.disabled = true;
+        window.alert(message);
+        return;
+      }
       const filteredSourceFolder = await selectProcessLogFolders(selectedSourceFolder, scanStartTime, files.length * 2);
       if (filteredSourceFolder) {
         sourceFolder = filteredSourceFolder;
@@ -609,16 +630,51 @@ Item 4
     }
   }
 
-  function fileListHasRelativePaths(files) {
-    return files.some((file) => String(file.webkitRelativePath || "").includes("/"));
+  function fileListCannotProvideRecursiveFiles(files) {
+    return !files.some((file) => String(file.webkitRelativePath || "").includes("/"));
   }
 
   function fileListLooksLikeDirectoryPlaceholders(files) {
     return files.length > 0 && files.every((file) => {
       const path = normalizePath(file.webkitRelativePath || file.name);
       const name = basename(path);
-      return path && !name.includes(".");
+      return path && isLikelyFolderPlaceholderName(name);
     });
+  }
+
+  function fileListProbablyContainsOnlyFolderNames(files, source) {
+    if (!source || source.byPath.size > 3) {
+      return false;
+    }
+    return files.every((file) => isLikelyFolderPlaceholderName(basename(file.webkitRelativePath || file.name)));
+  }
+
+  function isLikelyFolderPlaceholderName(name) {
+    const value = String(name || "").trim();
+    if (!value) {
+      return false;
+    }
+    if (value.includes(".")) {
+      return false;
+    }
+    return /^\d{8}_\d{6},?$/.test(value) || !/\.[A-Za-z0-9]{1,8}$/.test(value);
+  }
+
+  function buildRecursiveFileListWarning(files) {
+    const first = files[0] || {};
+    const firstPath = String(first.webkitRelativePath || first.name || "");
+    const diagnostic = "診斷：showDirectoryPicker=" + (hasDirectoryPicker() ? "可用" : "不可用")
+      + "，isSecureContext=" + (window.isSecureContext ? "是" : "否")
+      + "，FileList=" + files.length + " 筆"
+      + "，第一筆=" + (firstPath || "(空)")
+      + "，size=" + (typeof first.size === "number" ? first.size : "-");
+    return "瀏覽器目前沒有把子資料夾內容交給網頁，所以無法讀到子資料夾裡的 ProcessLog.ini / Wxxxx.ini。"
+      + "\r\n\r\n請重新按「選取資料夾」，選擇 Desktop\\Ini 根目錄；若仍一樣，請按 Ctrl+F5 重新整理後再試。"
+      + "\r\n\r\n" + diagnostic;
+  }
+
+  function hasDirectoryPicker() {
+    return typeof window.showDirectoryPicker === "function";
   }
 
   function showFolderPickPending() {
@@ -812,7 +868,7 @@ Item 4
     let outputDirectoryHandle = null;
     outputFolderName = makeOutputFolderName();
     try {
-      if ("showDirectoryPicker" in window) {
+      if (hasDirectoryPicker()) {
         outputBaseFolder = await pickOutputDirectory();
         savedOutputHandle = outputBaseFolder;
         await saveDirectoryHandle("outputHandle", outputBaseFolder);
@@ -1096,7 +1152,7 @@ Item 4
 
   async function restoreDirectoryHandles() {
     await clearDirectoryHandle("sourceHandle");
-    if (!("showDirectoryPicker" in window)) {
+    if (!hasDirectoryPicker()) {
       return;
     }
     try {
