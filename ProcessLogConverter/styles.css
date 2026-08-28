@@ -164,6 +164,120 @@ body {
   height: 32px;
 }
 
+.folder-dialog {
+  width: 820px;
+  height: 560px;
+  min-width: 680px;
+  min-height: 460px;
+  padding: 0;
+  border: 1px solid #707070;
+  background: #f0f0f0;
+  color: #111;
+  font: inherit;
+}
+
+.folder-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.folder-title {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  right: 12px;
+  height: 24px;
+  line-height: 24px;
+  font-weight: 700;
+}
+
+.folder-root,
+.folder-summary {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  height: 24px;
+  line-height: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-root {
+  top: 44px;
+}
+
+.folder-summary {
+  top: 72px;
+}
+
+.folder-list {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 106px;
+  bottom: 66px;
+  border: 1px solid #7a7a7a;
+  background: #fff;
+  overflow-y: auto;
+}
+
+.folder-row {
+  display: grid;
+  grid-template-columns: 72px 1fr 110px;
+  min-height: 28px;
+  border-bottom: 1px solid #e5e5e5;
+  align-items: center;
+}
+
+.folder-row.header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f8f8f8;
+  font-weight: 700;
+}
+
+.folder-cell {
+  min-width: 0;
+  padding: 4px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-cell + .folder-cell {
+  border-left: 1px solid #e5e5e5;
+}
+
+.folder-count {
+  text-align: right;
+}
+
+.folder-select-all-button,
+.folder-clear-button,
+.folder-confirm-button,
+.folder-cancel-button {
+  bottom: 10px;
+  width: 90px;
+  height: 32px;
+}
+
+.folder-select-all-button {
+  left: 12px;
+}
+
+.folder-clear-button {
+  left: 112px;
+}
+
+.folder-confirm-button {
+  right: 112px;
+}
+
+.folder-cancel-button {
+  right: 12px;
+}
+
 @media (max-width: 760px) {
   body {
     overflow-x: auto;

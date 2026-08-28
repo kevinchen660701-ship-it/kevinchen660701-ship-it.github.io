@@ -3,8 +3,19 @@
 <head>
   <!-- auth-gateway:start -->
   <style>html.auth-pending{visibility:hidden}</style>
-  <script>document.documentElement.classList.add("auth-pending")</script>
-  <script src="https://site-auth-gateway.cloudflare-authgateway.workers.dev/auth-check.js" data-site="ProcessLogConverter" defer></script>
+  <script>
+    (function () {
+      var host = String(location.hostname || "").toLowerCase();
+      if (host === "kevinchen660701-ship-it.github.io") {
+        document.documentElement.classList.add("auth-pending");
+        var script = document.createElement("script");
+        script.src = "https://site-auth-gateway.cloudflare-authgateway.workers.dev/auth-check.js";
+        script.defer = true;
+        script.setAttribute("data-site", "ProcessLogConverter");
+        document.head.appendChild(script);
+      }
+    })();
+  </script>
   <!-- auth-gateway:end -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -17,14 +28,14 @@
     <button id="convertButton" class="button convert-button" type="button">轉換檔案</button>
     <button id="cancelButton" class="button cancel-button" type="button" hidden disabled>取消</button>
     <button id="releaseNoteButton" class="button release-button" type="button">Release Note</button>
-    <div id="versionLabel" class="label version-label">版本：1.4.5.0</div>
+    <div id="versionLabel" class="label version-label">版本：1.4.9.0</div>
 
     <div id="sourceFolderLabel" class="label source-label">來源資料夾：未選取</div>
     <div id="outputFolderLabel" class="label output-label">輸出資料夾：未選取</div>
 
     <progress id="progressBar" class="progress" value="0" max="100"></progress>
     <div id="remainTimeLabel" class="label remain-label">預估剩餘時間：--:--:--</div>
-    <div id="statusLabel" class="label status-label">請選取含 ProcessLog.ini 或其上層的資料夾</div>
+    <div id="statusLabel" class="label status-label">請先選取根目錄，下一步可勾選要轉換的 ProcessLog 資料夾</div>
   </main>
 
   <input id="folderInput" type="file" webkitdirectory multiple hidden>
@@ -34,6 +45,17 @@
     <button id="closeReleaseNoteButton" class="button note-close-button" type="button">關閉</button>
   </dialog>
 
-  <script src="app.js?v=20260818-1415"></script>
+  <dialog id="folderSelectionDialog" class="folder-dialog">
+    <div class="folder-title">選擇 ProcessLog 資料夾</div>
+    <div id="folderSelectionRoot" class="folder-root">根目錄：尚未選擇</div>
+    <div id="folderSelectionSummary" class="folder-summary">已勾選 0 / 0 個資料夾，Wafer 0 筆</div>
+    <div id="folderSelectionList" class="folder-list"></div>
+    <button id="folderSelectAllButton" class="button folder-select-all-button" type="button">全選</button>
+    <button id="folderClearButton" class="button folder-clear-button" type="button">清除</button>
+    <button id="folderConfirmButton" class="button folder-confirm-button" type="button">確定</button>
+    <button id="folderCancelButton" class="button folder-cancel-button" type="button">取消</button>
+  </dialog>
+
+  <script src="app.js?v=20260828-1510"></script>
 </body>
 </html>

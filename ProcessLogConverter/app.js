@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = "1.4.5.0";
+  const VERSION = "1.4.9.0";
   const PROCESS_LOG_FILE_NAME = "ProcessLog.ini";
   const SERVER_IDX_NC3 = 2;
   const RECIPE_LEVEL_STEP_NUM = 10;
@@ -41,6 +41,26 @@
 
   const RELEASE_NOTES = `FSG-2300 ProcessLog Converter
 Release Notes
+
+[1.4.9.0] 2026-08-28
+Changed
+Item 1
+  HTML source folder selection now matches S1 Peak Check and uses the browser upload-folder flow.
+Item 2
+  After upload-folder selection, the web checkbox folder list is shown for folder selection.
+Item 3
+  ProcessLog folder checkboxes are unchecked by default so the user explicitly chooses folders.
+
+[1.4.8.0] 2026-08-28
+Changed
+Item 1
+  HTML folder selection now shows a checkbox list before conversion.
+Item 2
+  The folder selection confirmation button is 確定.
+Item 3
+  Converts only the checked ProcessLog folders.
+Item 4
+  Shows each selectable folder with its wafer ini count.
 
 [1.4.5.0] 2026-06-23
 Added
@@ -309,7 +329,15 @@ Item 4
     folderInput: document.getElementById("folderInput"),
     releaseNoteDialog: document.getElementById("releaseNoteDialog"),
     releaseNoteText: document.getElementById("releaseNoteText"),
-    closeReleaseNoteButton: document.getElementById("closeReleaseNoteButton")
+    closeReleaseNoteButton: document.getElementById("closeReleaseNoteButton"),
+    folderSelectionDialog: document.getElementById("folderSelectionDialog"),
+    folderSelectionRoot: document.getElementById("folderSelectionRoot"),
+    folderSelectionSummary: document.getElementById("folderSelectionSummary"),
+    folderSelectionList: document.getElementById("folderSelectionList"),
+    folderSelectAllButton: document.getElementById("folderSelectAllButton"),
+    folderClearButton: document.getElementById("folderClearButton"),
+    folderConfirmButton: document.getElementById("folderConfirmButton"),
+    folderCancelButton: document.getElementById("folderCancelButton")
   };
 
   let sourceFolder = null;
@@ -319,6 +347,7 @@ Item 4
   let isBusy = false;
   let cancelRequested = false;
   let convertStartTime = 0;
+  let folderSelectionResolve = null;
 
   ui.versionLabel.textContent = "版本：" + VERSION;
   loadSettings();
@@ -330,6 +359,14 @@ Item 4
   ui.releaseNoteButton.addEventListener("click", showReleaseNotes);
   ui.closeReleaseNoteButton.addEventListener("click", () => ui.releaseNoteDialog.close());
   ui.folderInput.addEventListener("change", handleFallbackFolderSelection);
+  ui.folderSelectAllButton.addEventListener("click", () => setFolderSelectionChecked(true));
+  ui.folderClearButton.addEventListener("click", () => setFolderSelectionChecked(false));
+  ui.folderConfirmButton.addEventListener("click", confirmFolderSelection);
+  ui.folderCancelButton.addEventListener("click", () => closeFolderSelection(null));
+  ui.folderSelectionDialog.addEventListener("cancel", (event) => {
+    event.preventDefault();
+    closeFolderSelection(null);
+  });
 
   async function selectFolder() {
     if (isBusy) {
@@ -357,22 +394,151 @@ Item 4
     try {
       await clearDirectoryHandle("sourceHandle");
       const selectedSourceFolder = await buildSourceFromFileList(files);
-      const hasProcessLog = hasProcessLogFolder(selectedSourceFolder);
-      if (hasProcessLog) {
-        sourceFolder = selectedSourceFolder;
-        saveSourceFolderName(sourceFolder.displayName);
+      const filteredSourceFolder = await selectProcessLogFolders(selectedSourceFolder);
+      if (filteredSourceFolder) {
+        sourceFolder = filteredSourceFolder;
+        saveSourceFolderName(sourceFolder.rootName);
         ui.sourceFolderLabel.textContent = "來源資料夾：" + sourceFolder.displayName;
-      } else {
+      } else if (!hasProcessLogFolder(selectedSourceFolder)) {
         clearSourceFolderName();
         ui.sourceFolderLabel.textContent = "來源資料夾：未選取";
         sourceFolder = null;
+        ui.statusLabel.textContent = buildProcessLogNotFoundMessage(selectedSourceFolder, "剛選的資料夾");
+        ui.convertButton.disabled = true;
+        return;
+      } else {
+        return;
       }
+
       ui.convertButton.disabled = false;
-      ui.statusLabel.textContent = hasProcessLog
-        ? "已選取資料夾，可開始轉換"
-        : buildProcessLogNotFoundMessage(selectedSourceFolder, "剛選的資料夾");
+      ui.statusLabel.textContent = "已勾選資料夾，請按「轉換檔案」開始轉換";
     } catch (error) {
       showError(error);
+    }
+  }
+
+  async function selectProcessLogFolders(selectedSourceFolder) {
+    const choices = buildFolderSelectionChoices(selectedSourceFolder);
+    if (choices.length === 0) {
+      return null;
+    }
+
+    const selectedFolders = await showFolderSelectionDialog(selectedSourceFolder, choices);
+    if (!selectedFolders || selectedFolders.length === 0) {
+      return null;
+    }
+
+    const filteredFiles = selectedSourceFolder.files.filter((file) => {
+      const dirPath = normalizePath(file.dirPath || dirname(file.relativePath));
+      return selectedFolders.some((folder) => dirPath === folder || dirPath.startsWith(folder + "/"));
+    });
+    const filteredSource = makeSource(selectedSourceFolder.rootName, filteredFiles);
+    filteredSource.displayName = selectedSourceFolder.rootName
+      + "；已勾選 " + selectedFolders.length + " / " + choices.length + " 個資料夾";
+    return filteredSource;
+  }
+
+  function buildFolderSelectionChoices(source) {
+    return getProcessLogFolders(source).map((folderPath) => ({
+      folderPath,
+      displayName: folderPath || source.rootName,
+      waferCount: getWaferFiles(source, folderPath).length
+    }));
+  }
+
+  function showFolderSelectionDialog(source, choices) {
+    renderFolderSelection(source, choices);
+    if (typeof ui.folderSelectionDialog.showModal === "function") {
+      ui.folderSelectionDialog.showModal();
+    } else {
+      const allFolders = choices.map((choice) => choice.folderPath);
+      return Promise.resolve(allFolders);
+    }
+
+    return new Promise((resolve) => {
+      folderSelectionResolve = resolve;
+    });
+  }
+
+  function renderFolderSelection(source, choices) {
+    ui.folderSelectionRoot.textContent = "根目錄：" + source.rootName;
+    ui.folderSelectionList.textContent = "";
+
+    const header = document.createElement("div");
+    header.className = "folder-row header";
+    appendFolderCell(header, "轉換");
+    appendFolderCell(header, "資料夾");
+    appendFolderCell(header, "Wafer", "folder-count");
+    ui.folderSelectionList.appendChild(header);
+
+    for (const choice of choices) {
+      const row = document.createElement("label");
+      row.className = "folder-row";
+
+      const checkCell = document.createElement("span");
+      checkCell.className = "folder-cell";
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = false;
+      checkbox.dataset.folder = choice.folderPath;
+      checkbox.dataset.wafer = String(choice.waferCount);
+      checkbox.addEventListener("change", updateFolderSelectionSummary);
+      checkCell.appendChild(checkbox);
+
+      row.appendChild(checkCell);
+      appendFolderCell(row, choice.displayName);
+      appendFolderCell(row, String(choice.waferCount), "folder-count");
+      ui.folderSelectionList.appendChild(row);
+    }
+
+    updateFolderSelectionSummary();
+  }
+
+  function appendFolderCell(row, text, extraClass) {
+    const cell = document.createElement("span");
+    cell.className = extraClass ? "folder-cell " + extraClass : "folder-cell";
+    cell.textContent = text;
+    row.appendChild(cell);
+  }
+
+  function setFolderSelectionChecked(checked) {
+    const boxes = folderSelectionBoxes();
+    for (const box of boxes) {
+      box.checked = checked;
+    }
+    updateFolderSelectionSummary();
+  }
+
+  function folderSelectionBoxes() {
+    return Array.from(ui.folderSelectionList.querySelectorAll('input[type="checkbox"]'));
+  }
+
+  function checkedFolderSelectionBoxes() {
+    return folderSelectionBoxes().filter((box) => box.checked);
+  }
+
+  function updateFolderSelectionSummary() {
+    const boxes = folderSelectionBoxes();
+    const checked = checkedFolderSelectionBoxes();
+    const waferCount = checked.reduce((sum, box) => sum + Number(box.dataset.wafer || 0), 0);
+    ui.folderSelectionSummary.textContent = "已勾選 " + checked.length + " / " + boxes.length
+      + " 個資料夾，Wafer " + waferCount + " 筆";
+    ui.folderConfirmButton.disabled = checked.length === 0;
+  }
+
+  function confirmFolderSelection() {
+    const selectedFolders = checkedFolderSelectionBoxes().map((box) => box.dataset.folder || "");
+    closeFolderSelection(selectedFolders);
+  }
+
+  function closeFolderSelection(selectedFolders) {
+    if (ui.folderSelectionDialog.open) {
+      ui.folderSelectionDialog.close();
+    }
+    if (folderSelectionResolve) {
+      const resolve = folderSelectionResolve;
+      folderSelectionResolve = null;
+      resolve(selectedFolders);
     }
   }
 
