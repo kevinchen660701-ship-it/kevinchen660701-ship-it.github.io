@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = "1.4.11.0";
+  const VERSION = "1.4.12.0";
   const PROCESS_LOG_FILE_NAME = "ProcessLog.ini";
   const SERVER_IDX_NC3 = 2;
   const RECIPE_LEVEL_STEP_NUM = 10;
@@ -41,6 +41,13 @@
 
   const RELEASE_NOTES = `FSG-2300 ProcessLog Converter
 Release Notes
+
+[1.4.12.0] 2026-08-28
+Changed
+Item 1
+  Shows a loading dialog while scanning large source folders.
+Item 2
+  Uses File System Access folder picking when available so the loading dialog appears before recursive scanning.
 
 [1.4.11.0] 2026-08-28
 Changed
@@ -344,6 +351,9 @@ Item 4
     releaseNoteDialog: document.getElementById("releaseNoteDialog"),
     releaseNoteText: document.getElementById("releaseNoteText"),
     closeReleaseNoteButton: document.getElementById("closeReleaseNoteButton"),
+    loadingDialog: document.getElementById("loadingDialog"),
+    loadingMessage: document.getElementById("loadingMessage"),
+    loadingProgress: document.getElementById("loadingProgress"),
     folderSelectionDialog: document.getElementById("folderSelectionDialog"),
     folderSelectionRoot: document.getElementById("folderSelectionRoot"),
     folderSelectionSummary: document.getElementById("folderSelectionSummary"),
@@ -389,6 +399,15 @@ Item 4
       return;
     }
 
+    if ("showDirectoryPicker" in window) {
+      await selectFolderWithDirectoryPicker();
+      return;
+    }
+
+    selectFolderWithFileInput();
+  }
+
+  function selectFolderWithFileInput() {
     try {
       sourceFolder = null;
       ui.folderInput.value = "";
@@ -402,6 +421,91 @@ Item 4
         return;
       }
       showError(error);
+    }
+  }
+
+  async function selectFolderWithDirectoryPicker() {
+    let rootHandle = null;
+    try {
+      rootHandle = await pickSourceDirectory();
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        return;
+      }
+      showError(error);
+      return;
+    }
+
+    const scanStartTime = performance.now();
+    try {
+      sourceFolder = null;
+      ui.convertButton.disabled = true;
+      ui.selectFolderButton.disabled = true;
+      ui.releaseNoteButton.disabled = true;
+      await clearDirectoryHandle("sourceHandle");
+      await saveDirectoryHandle("sourceHandle", rootHandle);
+      showLoadingDialog("正在載入資料夾：" + rootHandle.name);
+      reportFolderLoadPending("正在掃描資料夾：" + rootHandle.name, scanStartTime);
+      await nextFrame();
+
+      const selectedSourceFolder = await buildSourceFromDirectoryHandle(rootHandle, (stats) => {
+        reportFolderLoadPending(
+          "正在掃描資料夾：" + stats.folderCount + " 個資料夾，" + stats.fileCount + " 個檔案",
+          scanStartTime
+        );
+      }, (completed, total, message) => {
+        reportFolderLoadProgress(completed, total + 1, message, scanStartTime);
+      });
+
+      const filteredSourceFolder = await selectProcessLogFolders(selectedSourceFolder, scanStartTime, selectedSourceFolder.files.length);
+      if (filteredSourceFolder) {
+        sourceFolder = filteredSourceFolder;
+        saveSourceFolderName(sourceFolder.rootName);
+        ui.sourceFolderLabel.textContent = "來源資料夾：" + sourceFolder.displayName;
+      } else if (!hasProcessLogFolder(selectedSourceFolder)) {
+        clearSourceFolderName();
+        ui.sourceFolderLabel.textContent = "來源資料夾：未選取";
+        sourceFolder = null;
+        ui.progressBar.value = 0;
+        ui.remainTimeLabel.textContent = "預估剩餘時間：--:--:--";
+        ui.statusLabel.textContent = buildProcessLogNotFoundMessage(selectedSourceFolder, "剛選的資料夾");
+        ui.convertButton.disabled = true;
+        return;
+      } else {
+        ui.progressBar.value = 0;
+        ui.remainTimeLabel.textContent = "預估剩餘時間：--:--:--";
+        ui.statusLabel.textContent = "已取消選取資料夾";
+        return;
+      }
+
+      ui.convertButton.disabled = false;
+      ui.progressBar.value = 100;
+      ui.remainTimeLabel.textContent = "預估剩餘時間：00:00:00";
+      ui.statusLabel.textContent = "已勾選資料夾，請按「轉換檔案」開始轉換";
+    } catch (error) {
+      ui.progressBar.value = 0;
+      ui.remainTimeLabel.textContent = "預估剩餘時間：--:--:--";
+      showError(error);
+    } finally {
+      hideLoadingDialog();
+      ui.selectFolderButton.disabled = false;
+      ui.releaseNoteButton.disabled = false;
+    }
+  }
+
+  async function pickSourceDirectory() {
+    const options = {
+      id: "processlog-source-folder",
+      mode: "read",
+      startIn: "desktop"
+    };
+    try {
+      return await window.showDirectoryPicker(options);
+    } catch (error) {
+      if (error && error.name === "TypeError") {
+        return await window.showDirectoryPicker({ mode: "read" });
+      }
+      throw error;
     }
   }
 
@@ -420,6 +524,7 @@ Item 4
       ui.releaseNoteButton.disabled = true;
       await clearDirectoryHandle("sourceHandle");
       const scanStartTime = performance.now();
+      showLoadingDialog("正在載入資料夾...");
       reportFolderLoadProgress(0, files.length + 1, "正在載入資料夾：準備掃描 " + files.length + " 個檔案", scanStartTime);
       await nextFrame();
 
@@ -456,6 +561,7 @@ Item 4
       ui.remainTimeLabel.textContent = "預估剩餘時間：--:--:--";
       showError(error);
     } finally {
+      hideLoadingDialog();
       ui.selectFolderButton.disabled = false;
       ui.releaseNoteButton.disabled = false;
     }
@@ -496,6 +602,7 @@ Item 4
     }
 
     reportFolderLoadProgress(baseWorkCount + choices.length + 1, baseWorkCount + choices.length + 1, "資料夾清單載入完成，請勾選要轉換的資料夾", scanStartTime);
+    hideLoadingDialog();
     const selectedFolders = await showFolderSelectionDialog(selectedSourceFolder, choices);
     if (!selectedFolders || selectedFolders.length === 0) {
       return null;
@@ -781,6 +888,44 @@ Item 4
       ui.statusLabel.textContent = message;
     }
     ui.remainTimeLabel.textContent = "預估剩餘時間：" + getRemainingTimeText(percent, startTime);
+    updateLoadingDialog(message, percent);
+  }
+
+  function reportFolderLoadPending(message, startTime) {
+    ui.progressBar.removeAttribute("value");
+    if (message) {
+      ui.statusLabel.textContent = message;
+    }
+    ui.remainTimeLabel.textContent = "已用時間：" + formatDuration(performance.now() - startTime);
+    updateLoadingDialog(message, null);
+  }
+
+  function showLoadingDialog(message) {
+    updateLoadingDialog(message, null);
+    if (ui.loadingDialog && typeof ui.loadingDialog.showModal === "function" && !ui.loadingDialog.open) {
+      ui.loadingDialog.showModal();
+    }
+  }
+
+  function hideLoadingDialog() {
+    if (ui.loadingDialog && ui.loadingDialog.open) {
+      ui.loadingDialog.close();
+    }
+  }
+
+  function updateLoadingDialog(message, percent) {
+    if (!ui.loadingMessage || !ui.loadingProgress) {
+      return;
+    }
+    if (message) {
+      ui.loadingMessage.textContent = message;
+    }
+    if (typeof percent === "number") {
+      ui.loadingProgress.value = Math.max(0, Math.min(100, percent));
+      ui.loadingProgress.max = 100;
+    } else {
+      ui.loadingProgress.removeAttribute("value");
+    }
   }
 
   function reportWriteProgress(index, total, path) {
@@ -993,17 +1138,26 @@ Item 4
     });
   }
 
-  async function buildSourceFromDirectoryHandle(rootHandle) {
+  async function buildSourceFromDirectoryHandle(rootHandle, scanProgress, indexProgress) {
     const files = [];
-    await walkDirectoryHandle(rootHandle, "", files);
-    return makeSource(rootHandle.name, files);
+    const stats = { folderCount: 0, fileCount: 0 };
+    await walkDirectoryHandle(rootHandle, "", files, stats, scanProgress);
+    if (scanProgress) {
+      scanProgress(stats);
+    }
+    return await makeSourceAsync(rootHandle.name, files, indexProgress, 0);
   }
 
-  async function walkDirectoryHandle(directoryHandle, dirPath, files) {
+  async function walkDirectoryHandle(directoryHandle, dirPath, files, stats, scanProgress) {
     for await (const [name, handle] of directoryHandle.entries()) {
       const relativePath = dirPath ? dirPath + "/" + name : name;
       if (handle.kind === "directory") {
-        await walkDirectoryHandle(handle, relativePath, files);
+        stats.folderCount++;
+        if (scanProgress && stats.folderCount % 20 === 0) {
+          scanProgress(stats);
+          await nextFrame();
+        }
+        await walkDirectoryHandle(handle, relativePath, files, stats, scanProgress);
       } else if (handle.kind === "file") {
         files.push({
           name,
@@ -1011,6 +1165,11 @@ Item 4
           dirPath,
           getText: async () => readFileText(await handle.getFile())
         });
+        stats.fileCount++;
+        if (scanProgress && stats.fileCount % 250 === 0) {
+          scanProgress(stats);
+          await nextFrame();
+        }
       }
     }
   }

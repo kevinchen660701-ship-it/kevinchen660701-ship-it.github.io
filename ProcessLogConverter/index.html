@@ -28,7 +28,7 @@
     <button id="convertButton" class="button convert-button" type="button">轉換檔案</button>
     <button id="cancelButton" class="button cancel-button" type="button" hidden disabled>取消</button>
     <button id="releaseNoteButton" class="button release-button" type="button">Release Note</button>
-    <div id="versionLabel" class="label version-label">版本：1.4.11.0</div>
+    <div id="versionLabel" class="label version-label">版本：1.4.12.0</div>
 
     <div id="sourceFolderLabel" class="label source-label">來源資料夾：未選取</div>
     <div id="outputFolderLabel" class="label output-label">輸出資料夾：未選取</div>
@@ -45,6 +45,12 @@
     <button id="closeReleaseNoteButton" class="button note-close-button" type="button">關閉</button>
   </dialog>
 
+  <dialog id="loadingDialog" class="loading-dialog">
+    <div class="loading-title">讀取中</div>
+    <div id="loadingMessage" class="loading-message">正在載入資料夾...</div>
+    <progress id="loadingProgress" class="loading-progress"></progress>
+  </dialog>
+
   <dialog id="folderSelectionDialog" class="folder-dialog">
     <div class="folder-title">選擇 ProcessLog 資料夾</div>
     <div id="folderSelectionRoot" class="folder-root">根目錄：尚未選擇</div>
@@ -56,6 +62,6 @@
     <button id="folderCancelButton" class="button folder-cancel-button" type="button">取消</button>
   </dialog>
 
-  <script src="app.js?v=20260828-1715"></script>
+  <script src="app.js?v=20260828-1740"></script>
 </body>
 </html>
