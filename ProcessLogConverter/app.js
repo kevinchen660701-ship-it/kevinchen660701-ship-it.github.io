@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = "1.4.15.0";
+  const VERSION = "1.4.16.0";
   const PROCESS_LOG_FILE_NAME = "ProcessLog.ini";
   const SERVER_IDX_NC3 = 2;
   const RECIPE_LEVEL_STEP_NUM = 10;
@@ -41,6 +41,13 @@
 
   const RELEASE_NOTES = `FSG-2300 ProcessLog Converter
 Release Notes
+
+[1.4.16.0] 2026-08-28
+Fixed
+Item 1
+  Routes final ProcessLog-not-found results that only contain folder names to the recursive folder diagnostic.
+Item 2
+  Shows clearer diagnostics when Chrome does not expand subfolders from the selected root folder.
 
 [1.4.15.0] 2026-08-28
 Fixed
@@ -669,6 +676,39 @@ Item 4
       + "，第一筆=" + (firstPath || "(空)")
       + "，size=" + (typeof first.size === "number" ? first.size : "-");
     return "瀏覽器目前沒有把子資料夾內容交給網頁，所以無法讀到子資料夾裡的 ProcessLog.ini / Wxxxx.ini。"
+      + "\r\n\r\n請重新按「選取資料夾」，選擇 Desktop\\Ini 根目錄；若仍一樣，請按 Ctrl+F5 重新整理後再試。"
+      + "\r\n\r\n" + diagnostic;
+  }
+
+  function sourceLooksLikeDirectoryPlaceholders(source, files) {
+    if (!source || !files || files.length === 0 || files.length > 5) {
+      return false;
+    }
+    const hasKnownFile = files.some((file) => {
+      const path = normalizePath(file.relativePath || file.name);
+      const name = basename(path);
+      return /\.[A-Za-z0-9]{1,8}$/.test(name);
+    });
+    if (hasKnownFile) {
+      return false;
+    }
+    return files.every((file) => {
+      const path = normalizePath(file.relativePath || file.name);
+      return path && isLikelyFolderPlaceholderName(basename(path));
+    });
+  }
+
+  function buildRecursiveSourceWarning(source, files) {
+    const preview = files
+      .slice(0, 5)
+      .map((file) => file.relativePath || file.name || "(空)")
+      .join("、");
+    const diagnostic = "診斷：showDirectoryPicker=" + (hasDirectoryPicker() ? "可用" : "不可用")
+      + "，isSecureContext=" + (window.isSecureContext ? "是" : "否")
+      + "，Source=" + (source && source.rootName ? source.rootName : "-")
+      + "，掃到=" + files.length + " 筆"
+      + "，前幾筆=" + (preview || "(無)");
+    return "瀏覽器目前只回傳資料夾名稱，沒有展開子資料夾內容，所以無法讀到子資料夾裡的 ProcessLog.ini / Wxxxx.ini。"
       + "\r\n\r\n請重新按「選取資料夾」，選擇 Desktop\\Ini 根目錄；若仍一樣，請按 Ctrl+F5 重新整理後再試。"
       + "\r\n\r\n" + diagnostic;
   }
@@ -1438,6 +1478,9 @@ Item 4
 
   function buildProcessLogNotFoundMessage(source, prefix) {
     const files = source ? Array.from(source.byPath.values()).sort(comparePath) : [];
+    if (sourceLooksLikeDirectoryPlaceholders(source, files)) {
+      return buildRecursiveSourceWarning(source, files);
+    }
     const preview = files.slice(0, 5).map((file) => file.relativePath).join("、");
     const iniPreview = files
       .filter((file) => normalizeFileNameForMatch(file.relativePath).includes(".ini"))
