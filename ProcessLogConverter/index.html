@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <!-- auth-gateway:start -->
+  <style>html.auth-pending{visibility:hidden}</style>
+  <script>document.documentElement.classList.add("auth-pending")</script>
+  <script src="https://site-auth-gateway.cloudflare-authgateway.workers.dev/auth-check.js" data-site="ProcessLogConverter" defer></script>
+  <!-- auth-gateway:end -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FSG-2300 ProcessLog Converter</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="window" aria-label="FSG-2300 ProcessLog Converter">
+    <button id="selectFolderButton" class="button select-button" type="button">選取資料夾</button>
+    <button id="convertButton" class="button convert-button" type="button">轉換檔案</button>
+    <button id="cancelButton" class="button cancel-button" type="button" hidden disabled>取消</button>
+    <button id="releaseNoteButton" class="button release-button" type="button">Release Note</button>
+    <div id="versionLabel" class="label version-label">版本：1.4.5.0</div>
+
+    <div id="sourceFolderLabel" class="label source-label">來源資料夾：未選取</div>
+    <div id="outputFolderLabel" class="label output-label">輸出資料夾：未選取</div>
+
+    <progress id="progressBar" class="progress" value="0" max="100"></progress>
+    <div id="remainTimeLabel" class="label remain-label">預估剩餘時間：--:--:--</div>
+    <div id="statusLabel" class="label status-label">請選取含 ProcessLog.ini 或其上層的資料夾</div>
+  </main>
+
+  <input id="folderInput" type="file" webkitdirectory multiple hidden>
+
+  <dialog id="releaseNoteDialog" class="note-dialog">
+    <div class="note-text" id="releaseNoteText"></div>
+    <button id="closeReleaseNoteButton" class="button note-close-button" type="button">關閉</button>
+  </dialog>
+
+  <script src="app.js?v=20260818-1415"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+:root {
+  color-scheme: light;
+  font-family: "Microsoft JhengHei UI", "Microsoft JhengHei", Arial, sans-serif;
+  font-size: 10pt;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #f0f0f0;
+  color: #111;
+}
+
+.window {
+  position: relative;
+  width: 760px;
+  height: 300px;
+  min-width: 700px;
+  min-height: 300px;
+  margin: 0;
+  background: #f0f0f0;
+  overflow: hidden;
+}
+
+.button {
+  position: absolute;
+  border: 1px solid #adadad;
+  border-radius: 0;
+  background: #e1e1e1;
+  color: #111;
+  font: inherit;
+  text-align: center;
+  cursor: default;
+  padding: 0 8px;
+}
+
+.button:hover:not(:disabled) {
+  background: #e5f1fb;
+  border-color: #0078d7;
+}
+
+.button:active:not(:disabled) {
+  background: #cce4f7;
+}
+
+.button:disabled {
+  color: #838383;
+  background: #f0f0f0;
+  border-color: #bfbfbf;
+}
+
+.select-button {
+  left: 24px;
+  top: 24px;
+  width: 150px;
+  height: 42px;
+}
+
+.convert-button {
+  left: 190px;
+  top: 24px;
+  width: 150px;
+  height: 42px;
+}
+
+.cancel-button,
+.release-button {
+  left: 356px;
+  top: 24px;
+  width: 120px;
+  height: 42px;
+}
+
+.label {
+  position: absolute;
+  height: 24px;
+  line-height: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.version-label {
+  left: 500px;
+  top: 34px;
+  width: 230px;
+  text-align: right;
+}
+
+.source-label {
+  left: 24px;
+  top: 86px;
+  width: 710px;
+}
+
+.output-label {
+  left: 24px;
+  top: 120px;
+  width: 710px;
+}
+
+.progress {
+  position: absolute;
+  left: 24px;
+  top: 160px;
+  width: 710px;
+  height: 24px;
+}
+
+.remain-label {
+  left: 24px;
+  top: 198px;
+  width: 710px;
+}
+
+.status-label {
+  left: 24px;
+  top: 232px;
+  width: 710px;
+}
+
+.busy {
+  cursor: wait;
+}
+
+.note-dialog {
+  width: 760px;
+  height: 560px;
+  min-width: 560px;
+  min-height: 400px;
+  padding: 0;
+  border: 1px solid #707070;
+  background: #f0f0f0;
+  color: #111;
+  font: inherit;
+}
+
+.note-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.note-text {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  right: 12px;
+  bottom: 66px;
+  border: 1px solid #7a7a7a;
+  background: #fff;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  word-break: normal;
+  padding: 6px;
+}
+
+.note-close-button {
+  right: 12px;
+  bottom: 10px;
+  width: 90px;
+  height: 32px;
+}
+
+@media (max-width: 760px) {
+  body {
+    overflow-x: auto;
+  }
+}
