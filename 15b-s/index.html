@@ -1,0 +1,1567 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <!-- auth-gateway:start -->
+  <style>html.auth-pending{visibility:hidden}</style>
+  <script>document.documentElement.classList.add("auth-pending")</script>
+  <script src="https://site-auth-gateway.cloudflare-authgateway.workers.dev/auth-check.js" data-site="Plate15BS" defer></script>
+  <!-- auth-gateway:end -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>15B-S Plate Shape Simulator</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #dce5ee;
+      --panel: #edf3f8;
+      --panel-2: #d7e2ec;
+      --ink: #1f2d3d;
+      --muted: #647586;
+      --line: #9eb0bf;
+      --dark-line: #526577;
+      --primary: #345f91;
+      --primary-2: #21486f;
+      --green: #33a564;
+      --red: #c4483c;
+      --amber: #d0aa38;
+      --steel: #6d7f8f;
+      --plate: #1e2730;
+      --shine: rgba(255, 255, 255, .68);
+      font-family: "Segoe UI", "Microsoft JhengHei", Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #c8d5df, #eef4f9 42%, #cfdbe5);
+      color: var(--ink);
+    }
+
+    .app {
+      min-height: 100vh;
+      padding: 8px;
+      display: grid;
+      gap: 8px;
+      grid-template-rows: auto 1fr;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 12px;
+      border: 2px solid var(--dark-line);
+      border-radius: 8px;
+      background: linear-gradient(#e8f0f6, #cad8e4);
+      box-shadow: inset 0 1px 0 var(--shine);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(22px, 2.5vw, 30px);
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .status-pill {
+      min-width: 142px;
+      text-align: center;
+      padding: 6px 10px;
+      border: 2px solid var(--line);
+      border-radius: 6px;
+      background: #f5f8fb;
+      font-weight: 700;
+    }
+
+    main {
+      display: grid;
+      grid-template-columns: 230px minmax(720px, 1fr) 250px;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .panel {
+      padding: 8px;
+      border: 2px solid var(--dark-line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: inset 0 1px 0 var(--shine);
+    }
+
+    .panel h2 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      line-height: 1.05;
+    }
+
+    .control-block {
+      margin-bottom: 10px;
+    }
+
+    .label-row,
+    .field-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-height: 36px;
+    }
+
+    .label-row {
+      justify-content: space-between;
+      font-size: 15px;
+      color: var(--muted);
+    }
+
+    label {
+      font-weight: 700;
+    }
+
+    input {
+      width: 72px;
+      min-height: 36px;
+      padding: 4px 6px;
+      border: 2px solid var(--line);
+      border-radius: 6px;
+      background: #f6f9fc;
+      color: var(--ink);
+      font: inherit;
+      font-size: 20px;
+      text-align: center;
+      box-shadow: inset 0 1px 2px rgba(35, 48, 62, .14);
+    }
+
+    input[readonly] {
+      background: #dfe8f0;
+      color: #283848;
+    }
+
+    .unit {
+      min-width: 42px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .lamp {
+      width: 34px;
+      height: 34px;
+      min-height: 34px;
+      padding: 0;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      border: 2px solid #8f6b66;
+      background: radial-gradient(circle at 32% 28%, #f3a397, var(--red) 48%, #84291f 100%);
+      box-shadow: inset 0 2px 4px rgba(255,255,255,.38), 0 1px 2px rgba(0,0,0,.24);
+      cursor: pointer;
+    }
+
+    .lamp.off {
+      background: radial-gradient(circle at 32% 28%, #f3a397, var(--red) 48%, #84291f 100%);
+      border-color: #8f6b66;
+    }
+
+    .lamp.is-active,
+    .lamp.green {
+      background: radial-gradient(circle at 32% 28%, #9ef1b7, var(--green) 50%, #176338 100%);
+      border-color: #4f9470;
+    }
+
+    button {
+      min-height: 36px;
+      padding: 5px 10px;
+      border: 2px solid var(--line);
+      border-radius: 6px;
+      background: linear-gradient(#f5f8fb, #cad7e2);
+      color: var(--ink);
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 var(--shine);
+    }
+
+    button:hover {
+      border-color: var(--primary);
+    }
+
+    button.primary {
+      border-color: var(--primary-2);
+      background: linear-gradient(#4877aa, #2f5b86);
+      color: #fff;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      color: #8795a2;
+      background: #d9e1e8;
+    }
+
+    .center {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      grid-template-rows: auto minmax(240px, 1fr);
+      gap: 8px;
+    }
+
+    .shape-panel {
+      text-align: center;
+      grid-column: 1;
+    }
+
+    .center > .panel:nth-of-type(2) {
+      grid-column: 2;
+    }
+
+    .sim-panel {
+      grid-column: 1 / -1;
+    }
+
+    .shape-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      align-items: start;
+    }
+
+    .shape-card {
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 6px;
+      background: var(--panel-2);
+    }
+
+    .shape-card h3 {
+      margin: 0 0 5px;
+      font-size: 18px;
+    }
+
+    .shape-inputs {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .shape-auto {
+      min-width: 108px;
+      min-height: 36px;
+      padding: 5px 8px;
+      border: 2px solid var(--line);
+      border-radius: 6px;
+      background: #f6f9fc;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 0 1px 2px rgba(35, 48, 62, .14);
+    }
+
+    .shape-scale {
+      position: relative;
+      height: 48px;
+      margin-top: 5px;
+      display: grid;
+      align-items: end;
+    }
+
+    .axis {
+      position: relative;
+      height: 18px;
+      margin: 0 8px 16px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #526577, #526577);
+      box-shadow: inset 0 1px 2px rgba(0,0,0,.25);
+    }
+
+    .axis::before {
+      content: "";
+      position: absolute;
+      inset: 5px 50% 5px auto;
+      width: 3px;
+      background: #e6eef5;
+    }
+
+    .axis-fill {
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      height: 10px;
+      width: 0;
+      border-radius: 999px;
+      background: var(--amber);
+      transform-origin: left center;
+    }
+
+    .marker {
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-left: 7px solid transparent;
+      border-right: 7px solid transparent;
+      border-top: 12px solid #6f7f8e;
+      transform: translateX(-50%);
+    }
+
+    .tick-labels {
+      display: grid;
+      grid-template-columns: repeat(11, 1fr);
+      margin: 0 4px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .scale-caption {
+      position: absolute;
+      bottom: 1px;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      color: var(--ink);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .material-grid {
+      display: grid;
+      grid-template-columns: 20px 1fr 1fr 52px;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .material-grid .head {
+      font-weight: 700;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .material-grid input {
+      width: 100%;
+      min-height: 34px;
+    }
+
+    .sim-panel {
+      display: grid;
+      grid-template-columns: minmax(270px, 1fr) 300px;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .polisher {
+      position: relative;
+      min-height: 290px;
+      overflow: hidden;
+      border: 2px solid #607487;
+      border-radius: 8px;
+      --plate-size: min(82%, 420px);
+      --jig-size: min(22%, 112px);
+      background:
+        radial-gradient(circle at 50% 45%, rgba(255,255,255,.18), transparent 40%),
+        linear-gradient(145deg, #82a7c1, #4f7b99 45%, #335a77);
+    }
+
+    .plate-disk {
+      position: absolute;
+      left: 50%;
+      top: 56%;
+      width: var(--plate-size);
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 50%, #d9dee2 0 16.66%, #8e9aa3 16.8% 17.8%, transparent 18%),
+        radial-gradient(circle at 34% 26%, rgba(255,255,255,.58) 0 10%, rgba(255,255,255,.2) 18%, transparent 38%),
+        linear-gradient(135deg, rgba(255,255,255,.34), transparent 36%, rgba(55,70,82,.22) 70%, rgba(255,255,255,.18)),
+        repeating-radial-gradient(circle at 50% 50%, rgba(255,255,255,.14) 0 12px, rgba(255,255,255,.42) 13px 15px, rgba(55,69,80,.28) 16px 24px),
+        conic-gradient(from 28deg, #8c98a1 0 10%, #cbd3d8 18%, #9aa6ae 30%, #d8dde1 42%, #7c8992 58%, #c2ccd2 72%, #96a2aa 84%, #8c98a1 100%);
+      border: 9px solid #687680;
+      box-shadow: inset 0 0 22px rgba(255,255,255,.34), inset 0 0 52px rgba(43,54,63,.34), 0 8px 18px rgba(0,0,0,.22);
+    }
+
+    .plate-disk::before {
+      content: "";
+      position: absolute;
+      inset: 11%;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 76% 24%, rgba(255, 255, 255, .92) 0 2.4%, transparent 2.6%),
+        radial-gradient(circle at 28% 72%, rgba(255, 255, 255, .62) 0 1.8%, transparent 2%),
+        radial-gradient(circle at 67% 70%, rgba(151, 183, 202, .5) 0 1.5%, transparent 1.7%);
+      pointer-events: none;
+    }
+
+    .plate-disk::after {
+      content: "";
+      position: absolute;
+      inset: 8%;
+      border-radius: 50%;
+      background:
+        repeating-radial-gradient(circle at 50% 50%, transparent 0 28px, rgba(75, 87, 96, .2) 29px 31px, transparent 32px 54px);
+      pointer-events: none;
+    }
+
+    .jig {
+      position: absolute;
+      width: var(--jig-size);
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+    }
+
+    .jig.one { left: 50%; top: 38%; }
+    .jig.two { left: 32%; top: 59%; }
+    .jig.three { left: 68%; top: 59%; }
+
+    .jig-rotor {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 9px solid rgba(255, 255, 255, .54);
+      background:
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,.82) 0 15%, rgba(255,255,255,.54) 16% 26%, transparent 27%),
+        conic-gradient(from 0deg, rgba(255,255,255,.36) 0 18deg, rgba(255,255,255,.14) 18deg 48deg, rgba(255,255,255,.3) 48deg 66deg, rgba(255,255,255,.08) 66deg 360deg),
+        radial-gradient(circle, rgba(255,255,255,.34), rgba(210,226,236,.18) 54%, rgba(255,255,255,.1));
+      box-shadow: inset 0 0 16px rgba(255,255,255,.72), inset 0 0 28px rgba(80,120,148,.18), 0 4px 10px rgba(0,0,0,.2);
+      backdrop-filter: blur(1px);
+    }
+
+    .jig-fork {
+      position: absolute;
+      z-index: 3;
+      left: 50%;
+      top: 50%;
+      width: 154%;
+      height: 154%;
+      transform: translate(-50%, -50%);
+      background: center / 100% 100% no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 128 128'%3E%3Cpath d='M 24 104 A 52 52 0 1 1 104 104' fill='none' stroke='%234f83a7' stroke-width='10' stroke-linecap='round'/%3E%3Cpath d='M 29 96 A 46 46 0 1 1 99 96' fill='none' stroke='%238cb7d0' stroke-width='3' stroke-linecap='round' opacity='.55'/%3E%3C/svg%3E");
+      pointer-events: none;
+      filter: drop-shadow(0 2px 3px rgba(20, 42, 58, .24));
+    }
+
+    .jig-stem {
+      position: absolute;
+      z-index: 4;
+      left: 50%;
+      bottom: 94%;
+      width: 31%;
+      height: 81%;
+      transform: translateX(-50%);
+      border-radius: 11px;
+      background: linear-gradient(90deg, #95bfd7, #4f83a7);
+      border: 2px solid rgba(33, 82, 113, .4);
+    }
+
+    .slurry-nozzle {
+      position: absolute;
+      z-index: 6;
+      width: 128px;
+      height: 62px;
+      pointer-events: none;
+      opacity: .9;
+    }
+
+    .slurry-one {
+      left: calc(50% - 214px);
+      top: 9%;
+      transform: rotate(0deg);
+    }
+
+    .slurry-two {
+      left: calc(50% - 356px);
+      top: 58%;
+      transform: rotate(0deg);
+    }
+
+    .slurry-three {
+      left: calc(50% + 228px);
+      top: 58%;
+      transform: scaleX(-1) rotate(0deg);
+    }
+
+    .slurry-line {
+      position: absolute;
+      inset: 0;
+      border-top: 8px solid #657988;
+      border-right: 8px solid #657988;
+      border-radius: 0 46px 0 0;
+    }
+
+    .slurry-line::after {
+      content: "";
+      position: absolute;
+      right: -13px;
+      bottom: -6px;
+      width: 18px;
+      height: 12px;
+      border-radius: 6px;
+      background: linear-gradient(#d9e3ea, #718694);
+      border: 1px solid rgba(62, 78, 90, .5);
+    }
+
+    .slurry-drop {
+      position: absolute;
+      z-index: 7;
+      right: -8px;
+      bottom: -38px;
+      width: 10px;
+      height: 18px;
+      border-radius: 50%;
+      background: #88d6c7;
+      animation: drop 1.4s linear infinite;
+    }
+
+    @keyframes drop {
+      0% { transform: translateY(-6px); opacity: 0; }
+      25% { opacity: 1; }
+      100% { transform: translateY(70px); opacity: 0; }
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(120px, 1fr));
+      gap: 6px;
+      align-content: start;
+    }
+
+    .metric {
+      min-height: 52px;
+      padding: 6px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel-2);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 2px;
+      font-size: 20px;
+    }
+
+    .metric:last-child {
+      grid-column: 1 / -1;
+    }
+
+    .side {
+      display: grid;
+      grid-template-rows: auto auto 1fr;
+      gap: 8px;
+    }
+
+    .timer {
+      padding: 8px;
+      border: 2px solid var(--line);
+      border-radius: 7px;
+      background: #e7eef5;
+      text-align: center;
+      font-size: 28px;
+      font-variant-numeric: tabular-nums;
+      box-shadow: inset 0 1px 3px rgba(0,0,0,.14);
+    }
+
+    .progress {
+      height: 12px;
+      margin-top: 8px;
+      border-radius: 999px;
+      background: #6f8799;
+      overflow: hidden;
+      border: 1px solid #4b6578;
+      box-shadow: inset 0 1px 3px rgba(16, 34, 48, .34);
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, #16c172, #f3d14f, #ff8a3d);
+      box-shadow: 0 0 10px rgba(255, 138, 61, .62);
+    }
+
+    .side-buttons {
+      display: grid;
+      gap: 8px;
+    }
+
+    .note {
+      align-self: end;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .compact-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .compact-grid label {
+      display: grid;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .compact-grid input {
+      width: 100%;
+      font-size: 16px;
+    }
+
+    .calibration-summary {
+      display: block;
+      margin: 4px 0 8px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    #calibrationBtn {
+      width: 100%;
+    }
+
+    .calibration-dialog {
+      width: min(520px, calc(100vw - 28px));
+      border: 2px solid var(--line);
+      border-radius: 8px;
+      padding: 0;
+      color: var(--ink);
+      background: var(--panel);
+      box-shadow: 0 20px 48px rgba(20, 42, 58, .34);
+    }
+
+    .calibration-dialog::backdrop {
+      background: rgba(11, 25, 38, .42);
+    }
+
+    .calibration-window {
+      padding: 14px;
+    }
+
+    .calibration-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .calibration-title h2 {
+      margin: 0;
+      font-size: 24px;
+    }
+
+    .calibration-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .calibration-form label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .calibration-form input {
+      width: 100%;
+    }
+
+    .calibration-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .small-text {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.3;
+    }
+
+    .formula-box {
+      margin-top: 8px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: #dce7ef;
+      color: var(--ink);
+      font-size: 11px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+
+    .formula-box div {
+      margin-bottom: 4px;
+    }
+
+    .formula-box strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 12px;
+    }
+
+    .left-controls .field-row {
+      flex-wrap: wrap;
+    }
+
+    #agitate1,
+    #agitate2 {
+      min-width: 86px;
+      margin-left: 78px;
+      min-height: 32px;
+      padding: 4px 8px;
+    }
+
+    @media (max-width: 1120px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+
+      .left-controls {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
+        gap: 12px;
+      }
+
+      .control-block {
+        margin-bottom: 0;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .app {
+        padding: 10px;
+      }
+
+      header,
+      .shape-grid,
+      .sim-panel,
+      .left-controls {
+        grid-template-columns: 1fr;
+      }
+
+      header {
+        display: grid;
+      }
+
+      .material-grid {
+        grid-template-columns: 22px 1fr 1fr 58px;
+        gap: 6px;
+      }
+
+      input,
+      button {
+        font-size: 18px;
+      }
+
+      .panel h2 {
+        font-size: 24px;
+      }
+
+      .calibration-form {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>15B-S Plate Shape Simulator</h1>
+      <div class="status-pill" id="modeText">Manual Mode - Ready</div>
+    </header>
+
+    <main>
+      <section class="panel left-controls" aria-label="Process controls">
+        <div class="control-block">
+          <h2>Plate</h2>
+          <div class="field-row">
+            <input id="plateRpm" type="number" value="10" min="5" max="100">
+            <span class="unit">rpm</span>
+            <button type="button" class="lamp" id="plateLamp" aria-label="Plate manual start" aria-pressed="false"></button>
+          </div>
+        </div>
+
+        <div class="control-block">
+          <h2>Jig Drive</h2>
+          <div class="field-row">
+            <input id="jigRpm" type="number" value="10" min="5" max="100" readonly>
+            <span class="unit">rpm</span>
+            <button type="button" class="lamp" id="jigLamp" aria-label="Jig Drive manual start" aria-pressed="false"></button>
+          </div>
+        </div>
+
+        <div class="control-block">
+          <h2>Colloidal</h2>
+          <div class="field-row">
+            <input id="colloidalFlow" type="number" value="20" min="0" max="100">
+            <span class="unit">ml/min</span>
+            <button type="button" class="lamp" id="slurryLamp" aria-label="Colloidal manual start" aria-pressed="false"></button>
+          </div>
+        </div>
+
+        <div class="control-block">
+          <h2>Abrasive 1</h2>
+          <div class="field-row">
+            <input id="abrasive1Flow" type="number" value="10" min="0" max="100">
+            <span class="unit">ml/min</span>
+            <button type="button" class="lamp" id="abrasive1Lamp" aria-label="Abrasive 1 manual start" aria-pressed="false"></button>
+            <button type="button" id="agitate1">Agitate</button>
+          </div>
+        </div>
+
+        <div class="control-block">
+          <h2>Abrasive 2</h2>
+          <div class="field-row">
+            <input id="abrasive2Flow" type="number" value="10" min="0" max="100">
+            <span class="unit">ml/min</span>
+            <button type="button" class="lamp" id="abrasive2Lamp" aria-label="Abrasive 2 manual start" aria-pressed="false"></button>
+            <button type="button" id="agitate2">Agitate</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="center">
+        <section class="panel shape-panel" aria-label="Plate shape setup">
+          <h2>Plate Shape</h2>
+          <div class="shape-grid">
+            <div class="shape-card">
+              <h3>Target</h3>
+              <div class="shape-inputs">
+                <input id="targetShapeValue" type="number" value="10" min="-25" max="25" step="0.1">
+                <span class="unit">um</span>
+                <span class="shape-auto" id="targetShapeAuto">Convex</span>
+              </div>
+              <div class="shape-scale">
+                <div class="axis" aria-hidden="true">
+                  <div class="axis-fill" id="targetFill"></div>
+                  <div class="marker" id="targetMarker"></div>
+                </div>
+                <div class="tick-labels" aria-hidden="true">
+                  <span>-25</span><span>-20</span><span>-15</span><span>-10</span><span>-5</span><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span>
+                </div>
+                <div class="scale-caption"><span>Cav</span><span>Vex</span></div>
+              </div>
+            </div>
+
+            <div class="shape-card">
+              <h3>Actual</h3>
+              <div class="shape-inputs">
+                <input id="actualShapeValue" type="number" value="-3.1" min="-25" max="25" step="0.1">
+                <span class="unit">um</span>
+                <span class="shape-auto" id="actualShapeAuto">Concave</span>
+              </div>
+              <div class="shape-scale">
+                <div class="axis" aria-hidden="true">
+                  <div class="axis-fill" id="actualFill"></div>
+                  <div class="marker" id="actualMarker"></div>
+                </div>
+                <div class="tick-labels" aria-hidden="true">
+                  <span>-25</span><span>-20</span><span>-15</span><span>-10</span><span>-5</span><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span>
+                </div>
+                <div class="scale-caption"><span>Cav</span><span>Vex</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" aria-label="Material removal setup">
+          <h2 style="text-align:center">Material Removal</h2>
+          <div class="material-grid">
+            <div></div>
+            <div class="head">Target</div>
+            <div class="head">Actual</div>
+            <div></div>
+
+            <label for="mrTarget1">1</label>
+            <input id="mrTarget1" type="number" value="10" min="0" max="100" step="0.1">
+            <input id="mrActual1" type="number" value="0" min="0" max="100" step="0.1">
+            <button type="button" data-zero="1">Zero</button>
+
+            <label for="mrTarget2">2</label>
+            <input id="mrTarget2" type="number" value="10" min="0" max="100" step="0.1">
+            <input id="mrActual2" type="number" value="0" min="0" max="100" step="0.1">
+            <button type="button" data-zero="2">Zero</button>
+
+            <label for="mrTarget3">3</label>
+            <input id="mrTarget3" type="number" value="10" min="0" max="100" step="0.1">
+            <input id="mrActual3" type="number" value="0" min="0" max="100" step="0.1">
+            <button type="button" data-zero="3">Zero</button>
+          </div>
+        </section>
+
+        <section class="panel sim-panel" aria-label="Simulation output">
+          <div class="polisher">
+            <div class="slurry-nozzle slurry-one">
+              <div class="slurry-line"></div>
+              <div class="slurry-drop"></div>
+            </div>
+            <div class="slurry-nozzle slurry-two">
+              <div class="slurry-line"></div>
+              <div class="slurry-drop"></div>
+            </div>
+            <div class="slurry-nozzle slurry-three">
+              <div class="slurry-line"></div>
+              <div class="slurry-drop"></div>
+            </div>
+            <div class="plate-disk" id="plateDisk"></div>
+            <div class="jig one">
+              <div class="jig-fork"></div>
+              <div class="jig-stem"></div>
+              <div class="jig-rotor"></div>
+            </div>
+            <div class="jig two">
+              <div class="jig-fork"></div>
+              <div class="jig-stem"></div>
+              <div class="jig-rotor"></div>
+            </div>
+            <div class="jig three">
+              <div class="jig-fork"></div>
+              <div class="jig-stem"></div>
+              <div class="jig-rotor"></div>
+            </div>
+          </div>
+
+          <div class="metrics" aria-label="Calculated values">
+            <div class="metric">
+              <span>Shape Delta</span>
+              <strong id="deltaText">+13.1 um</strong>
+            </div>
+            <div class="metric">
+              <span>Calculated Jig Ratio</span>
+              <strong id="ratioText">1.68 : 1</strong>
+            </div>
+            <div class="metric">
+              <span>Estimated Direction</span>
+              <strong id="directionText">Toward Convex</strong>
+            </div>
+            <div class="metric">
+              <span>Estimated Rate</span>
+              <strong id="rateText">1.2 um/min</strong>
+            </div>
+            <div class="metric">
+              <span>Animation Speed</span>
+              <strong id="animSpeedText">Plate 0 / Jig 0 rpm</strong>
+            </div>
+            <div class="metric">
+              <span>Calibration</span>
+              <strong id="calibrationSummary">Shape 3.0 / Removal 1.0</strong>
+              <span class="calibration-summary" id="factorSummary">Factor 0.95 / 0.12</span>
+              <button type="button" id="calibrationBtn">Calibration</button>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <aside class="panel side" aria-label="Run controls">
+        <div>
+          <div class="timer" id="timerText">00:00:00</div>
+          <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+        </div>
+
+        <div class="side-buttons">
+          <button type="button" class="primary" id="startBtn">Start Process</button>
+          <button type="button" id="stopBtn">Stop Process</button>
+          <button type="button" id="resetBtn">Reset Timer</button>
+        </div>
+
+        <div>
+          <h2>Auto-Stop</h2>
+          <div class="timer" id="autoStopText">00:09:48</div>
+          <p class="note">
+            模型依 Preston 去除概念估算：去除量約與壓力、相對速度、時間、研磨係數成正比。Shape k 與 Removal k 可用你們 15B-S 實測資料校正。
+          </p>
+          <div class="formula-box" id="formulaText"></div>
+        </div>
+      </aside>
+    </main>
+
+    <dialog class="calibration-dialog" id="calibrationDialog" aria-labelledby="calibrationTitle">
+      <div class="calibration-window">
+        <div class="calibration-title">
+          <h2 id="calibrationTitle">Calibration</h2>
+          <button type="button" id="closeCalibrationBtn">Close</button>
+        </div>
+        <div class="calibration-form">
+          <label>
+            Shape k
+            <input id="shapeK" type="number" value="3.0" min="0.1" max="20" step="0.1">
+          </label>
+          <label>
+            Removal k
+            <input id="removalK" type="number" value="1.0" min="0.1" max="10" step="0.1">
+          </label>
+          <label>
+            Factor Delta k
+            <input id="factorDeltaK" type="number" value="0.95" min="0" max="3" step="0.01">
+          </label>
+          <label>
+            Factor MR k
+            <input id="factorMrK" type="number" value="0.12" min="0" max="1" step="0.01">
+          </label>
+          <label>
+            Plate 直徑 (mm)
+            <input id="plateDiameterMm" type="number" value="420" min="1" max="1000" step="1">
+          </label>
+          <label>
+            晶圓尺寸 (mm)
+            <input id="waferDiameterMm" type="number" value="120" min="1" max="500" step="1">
+          </label>
+          <label>
+            中心空區直徑 (mm)
+            <input id="centerDiameterMm" type="number" value="140" min="0" max="900" step="1">
+          </label>
+          <label>
+            Base geometry k
+            <input id="geometryBaseK" type="number" value="0.55" min="0" max="3" step="0.01">
+          </label>
+          <label>
+            Contact k
+            <input id="geometryContactK" type="number" value="0.25" min="0" max="3" step="0.01">
+          </label>
+          <label>
+            Sweep k
+            <input id="geometrySweepK" type="number" value="0.35" min="0" max="3" step="0.01">
+          </label>
+        </div>
+        <div class="formula-box">
+          <div><strong>Geometry gain 說明</strong></div>
+          <div>Base geometry k：基礎修整效率，代表機台即使沒有高覆蓋率時仍有的基本修整能力。</div>
+          <div>Contact k：晶圓接觸寬度對有效環寬 W 的權重。</div>
+          <div>Sweep k：Jig swing 覆蓋有效環寬 W 的權重。</div>
+          <div>Geometry gain = Base geometry k + contactRatio x Contact k + sweepCoverage x Sweep k</div>
+          <div>factor = 1 + (min(|Delta|/25,1) x Factor Delta k + min(MR gap/25,1) x Factor MR k) / Geometry gain</div>
+        </div>
+        <div class="calibration-actions">
+          <button type="button" class="primary" id="applyCalibrationBtn">Apply</button>
+        </div>
+      </div>
+    </dialog>
+  </div>
+
+  <script>
+    const ids = [
+      "plateRpm", "jigRpm", "colloidalFlow", "abrasive1Flow", "abrasive2Flow",
+      "targetShapeValue", "targetShapeAuto", "actualShapeValue", "actualShapeAuto",
+      "mrTarget1", "mrActual1", "mrTarget2", "mrActual2", "mrTarget3", "mrActual3",
+      "shapeK", "removalK", "factorDeltaK", "factorMrK", "plateDiameterMm", "waferDiameterMm", "centerDiameterMm",
+      "geometryBaseK", "geometryContactK", "geometrySweepK",
+      "modeText", "timerText", "autoStopText", "progressBar",
+      "deltaText", "ratioText", "directionText", "rateText", "animSpeedText", "formulaText",
+      "targetFill", "targetMarker", "actualFill", "actualMarker", "plateDisk",
+      "startBtn", "stopBtn", "resetBtn", "plateLamp", "jigLamp", "slurryLamp",
+      "abrasive1Lamp", "abrasive2Lamp", "calibrationBtn", "calibrationDialog",
+      "closeCalibrationBtn", "applyCalibrationBtn", "calibrationSummary", "factorSummary"
+    ];
+
+    const el = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
+    const jigHolders = Array.from(document.querySelectorAll(".jig"));
+    const jigRotors = Array.from(document.querySelectorAll(".jig-rotor"));
+    const zeroButtons = Array.from(document.querySelectorAll("[data-zero]"));
+    const slurryNozzles = Array.from(document.querySelectorAll(".slurry-nozzle"));
+    const slurryDrops = Array.from(document.querySelectorAll(".slurry-drop"));
+    const defaultGeometry = {
+      plateOD: 420,
+      centerOD: 140,
+      waferD: 120,
+      jigSweep: 20
+    };
+    const oldStorageKey = ["lp", "70-plate-simulator-inputs-v1"].join("");
+    const storageKey = "15b-s-plate-simulator-inputs-v1";
+    const savedInputIds = [
+      "plateRpm", "colloidalFlow", "abrasive1Flow", "abrasive2Flow",
+      "targetShapeValue", "actualShapeValue",
+      "mrTarget1", "mrActual1", "mrTarget2", "mrActual2", "mrTarget3", "mrActual3",
+      "shapeK", "removalK", "factorDeltaK", "factorMrK",
+      "plateDiameterMm", "waferDiameterMm", "centerDiameterMm",
+      "geometryBaseK", "geometryContactK", "geometrySweepK"
+    ];
+
+    const state = {
+      running: false,
+      totalSec: 0,
+      remainingSec: 0,
+      plateAngle: 0,
+      jigAngle: 0,
+      lastFrame: performance.now(),
+      startShape: 0,
+      startRemoval: [0, 0, 0],
+      unitActive: {
+        plate: false,
+        jig: false,
+        slurry: false,
+        abrasive1: false,
+        abrasive2: false
+      },
+      calc: null
+    };
+
+    const unitLamps = {
+      plate: el.plateLamp,
+      jig: el.jigLamp,
+      slurry: el.slurryLamp,
+      abrasive1: el.abrasive1Lamp,
+      abrasive2: el.abrasive2Lamp
+    };
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function num(input, fallback = 0) {
+      const value = Number(input.value);
+      return Number.isFinite(value) ? value : fallback;
+    }
+
+    function geometryInputs() {
+      const plateOD = Math.max(1, num(el.plateDiameterMm, defaultGeometry.plateOD));
+      const centerOD = clamp(num(el.centerDiameterMm, defaultGeometry.centerOD), 0, plateOD - 1);
+      const waferD = Math.max(1, num(el.waferDiameterMm, defaultGeometry.waferD));
+      const outerRadius = plateOD / 2;
+      const innerRadius = centerOD / 2;
+      const effectiveWidth = Math.max(1, outerRadius - innerRadius);
+
+      return {
+        plateOD,
+        centerOD,
+        waferD,
+        jigSweep: defaultGeometry.jigSweep,
+        outerRadius,
+        innerRadius,
+        effectiveWidth
+      };
+    }
+
+    function saveInputs() {
+      const payload = {};
+      savedInputIds.forEach((id) => {
+        payload[id] = el[id].value;
+      });
+      localStorage.setItem(storageKey, JSON.stringify(payload));
+    }
+
+    function restoreInputs() {
+      try {
+        if (!localStorage.getItem(storageKey) && localStorage.getItem(oldStorageKey)) {
+          localStorage.setItem(storageKey, localStorage.getItem(oldStorageKey));
+        }
+        const payload = JSON.parse(localStorage.getItem(storageKey) || "{}");
+        savedInputIds.forEach((id) => {
+          if (Object.prototype.hasOwnProperty.call(payload, id)) {
+            el[id].value = payload[id];
+          }
+        });
+      } catch (error) {
+        localStorage.removeItem(storageKey);
+      }
+    }
+
+    function signedShape(valueInput) {
+      return clamp(num(valueInput), -25, 25);
+    }
+
+    function setShapeInputs(valueInput, signed) {
+      valueInput.value = clamp(signed, -25, 25).toFixed(1);
+    }
+
+    function shapeName(signed) {
+      if (Math.abs(signed) < 0.05) return "Flat";
+      return signed < 0 ? "Concave" : "Convex";
+    }
+
+    function formatSigned(value) {
+      const prefix = value > 0 ? "+" : "";
+      return `${prefix}${value.toFixed(1)} um`;
+    }
+
+    function formatClock(totalSeconds) {
+      const seconds = Math.max(0, Math.round(totalSeconds));
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+      return [h, m, s].map((part) => String(part).padStart(2, "0")).join(":");
+    }
+
+    function updateScale(fill, marker, signedValue) {
+      const value = clamp(signedValue, -25, 25);
+      const percent = ((value + 25) / 50) * 100;
+      marker.style.left = `${percent}%`;
+      fill.style.left = value < 0 ? `${percent}%` : "50%";
+      fill.style.width = `${Math.abs(percent - 50)}%`;
+      fill.style.transformOrigin = value < 0 ? "right center" : "left center";
+    }
+
+    function materialRows() {
+      return [
+        { target: num(el.mrTarget1), actual: num(el.mrActual1), input: el.mrActual1 },
+        { target: num(el.mrTarget2), actual: num(el.mrActual2), input: el.mrActual2 },
+        { target: num(el.mrTarget3), actual: num(el.mrActual3), input: el.mrActual3 }
+      ];
+    }
+
+    function calculate() {
+      const targetShape = signedShape(el.targetShapeValue);
+      const actualShape = signedShape(el.actualShapeValue);
+      const delta = targetShape - actualShape;
+      const absDelta = Math.abs(delta);
+      const rows = materialRows();
+      const targetRemovalAvg = rows.reduce((sum, row) => sum + row.target, 0) / rows.length;
+      const removalGapAvg = rows.reduce((sum, row) => sum + Math.max(0, row.target - row.actual), 0) / rows.length;
+      const abrasiveAvg = (num(el.abrasive1Flow) + num(el.abrasive2Flow)) / 2;
+      const slurry = num(el.colloidalFlow);
+      const shapeK = Math.max(0.1, num(el.shapeK, 3));
+      const removalK = Math.max(0.1, num(el.removalK, 1));
+      const factorDeltaK = Math.max(0, num(el.factorDeltaK, 0.95));
+      const factorMrK = Math.max(0, num(el.factorMrK, 0.12));
+      const geometryBaseK = Math.max(0, num(el.geometryBaseK, 0.55));
+      const geometryContactK = Math.max(0, num(el.geometryContactK, 0.25));
+      const geometrySweepK = Math.max(0, num(el.geometrySweepK, 0.35));
+      const severity = clamp(absDelta / 25, 0, 1);
+      const removalBoost = clamp(removalGapAvg / 25, 0, 1);
+      const userPlate = clamp(num(el.plateRpm, 10), 5, 100);
+      const geometry = geometryInputs();
+      const outerRadius = geometry.outerRadius;
+      const innerRadius = geometry.innerRadius;
+      const effectiveWidth = geometry.effectiveWidth;
+      const contactRatio = geometry.waferD / effectiveWidth;
+      const sweepCoverage = clamp((geometry.waferD + geometry.jigSweep) / effectiveWidth, 0, 1.15);
+      const geometryGain = clamp(geometryBaseK + contactRatio * geometryContactK + sweepCoverage * geometrySweepK, 0.25, 3);
+      const splitDemand = severity * factorDeltaK + removalBoost * factorMrK;
+      const split = 1 + splitDemand / geometryGain;
+
+      let plate = userPlate;
+      let jig = userPlate;
+      let direction = "Hold Flat";
+
+      if (delta > 0.15) {
+        jig = userPlate / split;
+        direction = "Toward Convex";
+      } else if (delta < -0.15) {
+        jig = userPlate * split;
+        direction = "Toward Concave";
+      }
+
+      plate = clamp(plate, 5, 100);
+      jig = clamp(jig, 5, 100);
+
+      const ratio = plate / jig;
+      const differential = Math.abs(plate - jig) / Math.max(1, plate + jig);
+      const flowFactor = (slurry + abrasiveAvg) / 45;
+      const motionFactor = 0.75 + (plate + jig) / 160;
+      const contactLoadFactor = 0.85 + Math.min(contactRatio, 1) * 0.18;
+      const shapeRate = absDelta < 0.15 ? 0 : Math.max(0.15, shapeK * differential * (0.75 + removalBoost * 0.45) * geometryGain);
+      const removalRate = Math.max(0.12, removalK * flowFactor * motionFactor * contactLoadFactor);
+      const shapeTime = absDelta < 0.15 ? 0 : absDelta / shapeRate;
+      const removalTime = removalGapAvg / removalRate;
+      const estimatedMinutes = clamp(Math.max(shapeTime, removalTime, 0.25), 0.25, 90);
+
+      return {
+        targetShape,
+        actualShape,
+        delta,
+        plate,
+        jig,
+        ratio,
+        direction,
+        absDelta,
+        split,
+        factorDeltaK,
+        factorMrK,
+        differential,
+        outerRadius,
+        innerRadius,
+        effectiveWidth,
+        plateOD: geometry.plateOD,
+        centerOD: geometry.centerOD,
+        waferD: geometry.waferD,
+        jigSweep: geometry.jigSweep,
+        contactRatio,
+        sweepCoverage,
+        geometryGain,
+        geometryBaseK,
+        geometryContactK,
+        geometrySweepK,
+        splitDemand,
+        flowFactor,
+        motionFactor,
+        contactLoadFactor,
+        removalGapAvg,
+        removalBoost,
+        shapeRate,
+        removalRate,
+        shapeTime,
+        removalTime,
+        estimatedMinutes,
+        rows
+      };
+    }
+
+    function formatFormula(calc) {
+      const plate = calc.plate.toFixed(0);
+      const jig = calc.jig.toFixed(0);
+      const split = calc.split.toFixed(2);
+      const delta = calc.delta.toFixed(1);
+      const absDelta = calc.absDelta.toFixed(1);
+      const diff = calc.differential.toFixed(3);
+      const removalBoost = calc.removalBoost.toFixed(2);
+      const removalGap = calc.removalGapAvg.toFixed(1);
+      const shapeK = num(el.shapeK, 3).toFixed(1);
+      const removalK = num(el.removalK, 1).toFixed(1);
+      const factorDeltaK = calc.factorDeltaK.toFixed(2);
+      const factorMrK = calc.factorMrK.toFixed(2);
+      const slurry = num(el.colloidalFlow).toFixed(0);
+      const abrasiveAvg = ((num(el.abrasive1Flow) + num(el.abrasive2Flow)) / 2).toFixed(0);
+      const contactRatio = calc.contactRatio.toFixed(3);
+      const sweepCoverage = calc.sweepCoverage.toFixed(3);
+      const geometryGain = calc.geometryGain.toFixed(2);
+      const geometryBaseK = calc.geometryBaseK.toFixed(2);
+      const geometryContactK = calc.geometryContactK.toFixed(2);
+      const geometrySweepK = calc.geometrySweepK.toFixed(2);
+      const contactLoadFactor = calc.contactLoadFactor.toFixed(2);
+      const jigFormula = calc.delta > 0.15
+        ? `Jig rpm = Plate rpm / factor = ${plate} / ${split} = ${jig} rpm`
+        : calc.delta < -0.15
+          ? `Jig rpm = Plate rpm x factor = ${plate} x ${split} = ${jig} rpm`
+          : `Jig rpm = Plate rpm = ${plate} rpm`;
+
+      return `
+        <div><strong>Jig rpm 計算式</strong>${jigFormula}</div>
+        <div>W = Ro - Ri = ${calc.outerRadius.toFixed(0)} - ${calc.innerRadius.toFixed(0)} = ${calc.effectiveWidth.toFixed(0)} mm</div>
+        <div>contactRatio = waferD / W = ${calc.waferD.toFixed(0)} / ${calc.effectiveWidth.toFixed(0)} = ${contactRatio}</div>
+        <div>sweepCoverage = (waferD + Jig sweep) / W = (${calc.waferD.toFixed(0)} + ${calc.jigSweep.toFixed(0)}) / ${calc.effectiveWidth.toFixed(0)} = ${sweepCoverage}</div>
+        <div>Geometry gain = ${geometryBaseK} + contactRatio x ${geometryContactK} + sweepCoverage x ${geometrySweepK} = ${geometryGain}</div>
+        <div>factor = 1 + (min(|Delta|/25,1) x ${factorDeltaK} + min(MR gap/25,1) x ${factorMrK}) / ${geometryGain} = ${split}</div>
+        <div>Delta = Target - Actual = ${calc.targetShape.toFixed(1)} - ${calc.actualShape.toFixed(1)} = ${delta} um</div>
+        <div><strong>時間計算式</strong>shapeRate = max(0.15, Shape k x |Plate-Jig|/(Plate+Jig) x (0.75 + MR boost x 0.45) x Geometry gain)</div>
+        <div>shapeRate = max(0.15, ${shapeK} x ${diff} x (0.75 + ${removalBoost} x 0.45) x ${geometryGain}) = ${calc.shapeRate.toFixed(2)} um/min</div>
+        <div>shapeTime = |Delta| / shapeRate = ${absDelta} / ${calc.shapeRate.toFixed(2)} = ${calc.shapeTime.toFixed(1)} min</div>
+        <div>removalRate = max(0.12, Removal k x Flow factor x Motion factor x Contact load factor)</div>
+        <div>removalRate = max(0.12, ${removalK} x ((${slurry}+${abrasiveAvg})/45) x (0.75 + (${plate}+${jig})/160) x ${contactLoadFactor}) = ${calc.removalRate.toFixed(2)} um/min</div>
+        <div>removalTime = MR gap / removalRate = ${removalGap} / ${calc.removalRate.toFixed(2)} = ${calc.removalTime.toFixed(1)} min</div>
+        <div>Auto-Stop = max(shapeTime, removalTime, 0.25) = ${calc.estimatedMinutes.toFixed(1)} min</div>
+      `;
+    }
+
+    function updateSlurryVisual() {
+      const flow = clamp(num(el.colloidalFlow), 0, 100);
+      const activeFlow = state.unitActive.slurry ? flow : 0;
+      const activity = activeFlow / 100;
+      const duration = 1.9 - activity * 1.5;
+      slurryDrops.forEach((drop, index) => {
+        drop.style.animationDuration = `${duration.toFixed(2)}s`;
+        drop.style.animationDelay = `${index * -duration / 3}s`;
+        drop.style.animationPlayState = activeFlow <= 0 ? "paused" : "running";
+        drop.style.opacity = activeFlow <= 0 ? "0" : String(0.45 + activity * 0.55);
+        drop.style.height = `${12 + activity * 14}px`;
+        drop.style.width = `${7 + activity * 6}px`;
+      });
+      slurryNozzles.forEach((nozzle) => {
+        nozzle.style.opacity = String(state.unitActive.slurry ? 0.45 + activity * 0.55 : 0.25);
+      });
+    }
+
+    function renderCalc() {
+      const calc = calculate();
+      state.calc = calc;
+      el.jigRpm.value = calc.jig.toFixed(0);
+      el.deltaText.textContent = formatSigned(calc.delta);
+      el.ratioText.textContent = `${calc.ratio.toFixed(2)} : 1`;
+      el.directionText.textContent = calc.direction;
+      el.rateText.textContent = `${calc.shapeRate.toFixed(2)} um/min`;
+      el.calibrationSummary.textContent = `Shape ${num(el.shapeK, 3).toFixed(1)} / Removal ${num(el.removalK, 1).toFixed(1)}`;
+      el.factorSummary.textContent = `Factor ${calc.factorDeltaK.toFixed(2)} / ${calc.factorMrK.toFixed(2)} | Geometry ${calc.geometryBaseK.toFixed(2)} / ${calc.geometryContactK.toFixed(2)} / ${calc.geometrySweepK.toFixed(2)}`;
+      el.autoStopText.textContent = formatClock(calc.estimatedMinutes * 60);
+      el.formulaText.innerHTML = formatFormula(calc);
+      updateSlurryVisual();
+      el.targetShapeAuto.textContent = shapeName(calc.targetShape);
+      el.actualShapeAuto.textContent = shapeName(calc.actualShape);
+      updateScale(el.targetFill, el.targetMarker, calc.targetShape);
+      updateScale(el.actualFill, el.actualMarker, calc.actualShape);
+      if (!state.running) {
+        state.totalSec = calc.estimatedMinutes * 60;
+        state.remainingSec = state.totalSec;
+        el.timerText.textContent = formatClock(state.remainingSec);
+        el.progressBar.style.width = "0%";
+      }
+    }
+
+    function setUnitActive(unit, isActive) {
+      state.unitActive[unit] = isActive;
+      unitLamps[unit].classList.toggle("is-active", isActive);
+      unitLamps[unit].setAttribute("aria-pressed", String(isActive));
+      updateSlurryVisual();
+    }
+
+    function setAllUnits(isActive) {
+      Object.keys(unitLamps).forEach((unit) => setUnitActive(unit, isActive));
+    }
+
+    function setRunning(isRunning) {
+      state.running = isRunning;
+      el.modeText.textContent = isRunning ? "Manual Mode - Running" : "Manual Mode - Ready";
+      el.startBtn.disabled = isRunning;
+      el.stopBtn.disabled = !isRunning;
+      setAllUnits(isRunning);
+    }
+
+    function startProcess() {
+      saveInputs();
+      renderCalc();
+      state.startShape = signedShape(el.actualShapeValue);
+      state.startRemoval = materialRows().map((row) => row.actual);
+      state.totalSec = Math.max(1, state.calc.estimatedMinutes * 60);
+      state.remainingSec = state.totalSec;
+      setRunning(true);
+    }
+
+    function stopProcess() {
+      saveInputs();
+      setRunning(false);
+    }
+
+    function resetTimer() {
+      saveInputs();
+      setRunning(false);
+      renderCalc();
+    }
+
+    function animate(now) {
+      const dt = Math.min(0.08, (now - state.lastFrame) / 1000);
+      state.lastFrame = now;
+      const calc = state.calc || calculate();
+      const plateRpm = calc.plate;
+      const jigRpm = calc.jig;
+      const plateActivity = state.unitActive.plate ? 1 : 0;
+      const jigActivity = state.unitActive.jig ? 1 : 0;
+      const plateDegPerSec = plateRpm * 360 / 60;
+      const jigDegPerSec = jigRpm * 360 / 60;
+
+      state.plateAngle = (state.plateAngle + plateDegPerSec * dt * plateActivity) % 360;
+      state.jigAngle = (state.jigAngle - jigDegPerSec * dt * jigActivity) % 360;
+      el.animSpeedText.textContent = `Plate ${plateActivity ? plateRpm.toFixed(0) : 0} / Jig ${jigActivity ? jigRpm.toFixed(0) : 0} rpm`;
+      el.plateDisk.style.transform = `translate(-50%, -50%) rotate(${state.plateAngle}deg)`;
+      const platePixels = el.plateDisk.offsetWidth || 420;
+      const geometry = geometryInputs();
+      const sweepPx = platePixels * geometry.jigSweep / geometry.plateOD;
+      const sweepHz = clamp(jigRpm / 180, 0.04, 0.38);
+      const sweepPhase = now / 1000 * sweepHz * Math.PI * 2;
+      const swing = Math.sin(sweepPhase) * sweepPx * jigActivity;
+      jigHolders.forEach((holder, index) => {
+        if (index === 0) {
+          holder.style.transform = `translate(-50%, -50%) translateY(${(-swing * 0.62).toFixed(1)}px)`;
+        } else if (index === 1) {
+          holder.style.transform = `translate(-50%, -50%) translateX(${(-swing).toFixed(1)}px)`;
+        } else if (index === 2) {
+          holder.style.transform = `translate(-50%, -50%) translateX(${swing.toFixed(1)}px)`;
+        }
+      });
+      jigRotors.forEach((rotor, index) => {
+        rotor.style.transform = `rotate(${state.jigAngle + index * 34}deg)`;
+      });
+
+      if (state.running) {
+        state.remainingSec = Math.max(0, state.remainingSec - dt);
+        const progress = clamp(1 - state.remainingSec / state.totalSec, 0, 1);
+        const eased = 1 - Math.pow(1 - progress, 1.7);
+        const newShape = state.startShape + (calc.targetShape - state.startShape) * eased;
+        setShapeInputs(el.actualShapeValue, newShape);
+
+        calc.rows.forEach((row, index) => {
+          const startValue = state.startRemoval[index];
+          row.input.value = (startValue + (row.target - startValue) * eased).toFixed(1);
+        });
+
+        el.timerText.textContent = formatClock(state.remainingSec);
+        el.progressBar.style.width = `${progress * 100}%`;
+        renderCalc();
+
+        if (state.remainingSec <= 0) {
+          setRunning(false);
+          setShapeInputs(el.actualShapeValue, calc.targetShape);
+          calc.rows.forEach((row) => {
+            row.input.value = row.target.toFixed(1);
+          });
+          renderCalc();
+          saveInputs();
+        }
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    document.querySelectorAll("input").forEach((input) => {
+      input.addEventListener("input", () => {
+        saveInputs();
+        if (!state.running) renderCalc();
+      });
+      input.addEventListener("change", () => {
+        saveInputs();
+        if (!state.running) renderCalc();
+      });
+    });
+
+    zeroButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        const index = button.dataset.zero;
+        document.getElementById(`mrActual${index}`).value = "0";
+        saveInputs();
+        renderCalc();
+      });
+    });
+
+    el.startBtn.addEventListener("click", startProcess);
+    el.stopBtn.addEventListener("click", stopProcess);
+    el.resetBtn.addEventListener("click", resetTimer);
+    el.calibrationBtn.addEventListener("click", () => {
+      if (typeof el.calibrationDialog.showModal === "function") {
+        el.calibrationDialog.showModal();
+      } else {
+        el.calibrationDialog.setAttribute("open", "");
+      }
+    });
+    el.closeCalibrationBtn.addEventListener("click", () => {
+      el.calibrationDialog.close();
+    });
+    el.applyCalibrationBtn.addEventListener("click", () => {
+      saveInputs();
+      renderCalc();
+      el.calibrationDialog.close();
+    });
+    el.calibrationDialog.addEventListener("click", (event) => {
+      if (event.target === el.calibrationDialog) {
+        el.calibrationDialog.close();
+      }
+    });
+    Object.keys(unitLamps).forEach((unit) => {
+      unitLamps[unit].addEventListener("click", () => {
+        setUnitActive(unit, !state.unitActive[unit]);
+      });
+    });
+    document.getElementById("agitate1").addEventListener("click", () => {
+      setUnitActive("abrasive1", !state.unitActive.abrasive1);
+    });
+    document.getElementById("agitate2").addEventListener("click", () => {
+      setUnitActive("abrasive2", !state.unitActive.abrasive2);
+    });
+
+    restoreInputs();
+    renderCalc();
+    setRunning(false);
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
