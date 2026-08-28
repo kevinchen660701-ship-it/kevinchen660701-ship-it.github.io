@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = "1.4.16.0";
+  const VERSION = "1.4.17.0";
   const PROCESS_LOG_FILE_NAME = "ProcessLog.ini";
   const SERVER_IDX_NC3 = 2;
   const RECIPE_LEVEL_STEP_NUM = 10;
@@ -41,6 +41,13 @@
 
   const RELEASE_NOTES = `FSG-2300 ProcessLog Converter
 Release Notes
+
+[1.4.17.0] 2026-08-28
+Changed
+Item 1
+  Uses the same webkitdirectory folder-upload selection flow as S1 Peak Check.
+Item 2
+  Avoids Chrome directory-permission scans that can return only child folder names on some local folders.
 
 [1.4.16.0] 2026-08-28
 Fixed
@@ -438,11 +445,6 @@ Item 4
 
   async function selectFolder() {
     if (isBusy) {
-      return;
-    }
-
-    if (hasDirectoryPicker()) {
-      await selectFolderWithDirectoryPicker();
       return;
     }
 
