@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = "1.4.10.0";
+  const VERSION = "1.4.11.0";
   const PROCESS_LOG_FILE_NAME = "ProcessLog.ini";
   const SERVER_IDX_NC3 = 2;
   const RECIPE_LEVEL_STEP_NUM = 10;
@@ -41,6 +41,13 @@
 
   const RELEASE_NOTES = `FSG-2300 ProcessLog Converter
 Release Notes
+
+[1.4.11.0] 2026-08-28
+Changed
+Item 1
+  Shows folder loading status immediately after pressing Select Folder.
+Item 2
+  Uses an indeterminate progress bar while the browser prepares a large selected folder.
 
 [1.4.10.0] 2026-08-28
 Changed
@@ -355,6 +362,7 @@ Item 4
   let cancelRequested = false;
   let convertStartTime = 0;
   let folderSelectionResolve = null;
+  let folderPickPending = false;
 
   ui.versionLabel.textContent = "版本：" + VERSION;
   loadSettings();
@@ -374,6 +382,7 @@ Item 4
     event.preventDefault();
     closeFolderSelection(null);
   });
+  window.addEventListener("focus", handleWindowFocusAfterFolderPick);
 
   async function selectFolder() {
     if (isBusy) {
@@ -383,8 +392,12 @@ Item 4
     try {
       sourceFolder = null;
       ui.folderInput.value = "";
+      folderPickPending = true;
+      showFolderPickPending();
       ui.folderInput.click();
     } catch (error) {
+      folderPickPending = false;
+      resetFolderPickPending();
       if (error && error.name === "AbortError") {
         return;
       }
@@ -393,8 +406,10 @@ Item 4
   }
 
   async function handleFallbackFolderSelection(event) {
+    folderPickPending = false;
     const files = Array.from(event.target.files || []);
     if (files.length === 0) {
+      resetFolderPickPending();
       return;
     }
 
@@ -444,6 +459,32 @@ Item 4
       ui.selectFolderButton.disabled = false;
       ui.releaseNoteButton.disabled = false;
     }
+  }
+
+  function showFolderPickPending() {
+    ui.convertButton.disabled = true;
+    ui.progressBar.removeAttribute("value");
+    ui.remainTimeLabel.textContent = "預估剩餘時間：等待選取資料夾";
+    ui.statusLabel.textContent = "請在視窗中選取根目錄；選完後若檔案很多，瀏覽器會先載入資料夾清單";
+  }
+
+  function resetFolderPickPending() {
+    ui.progressBar.value = 0;
+    ui.remainTimeLabel.textContent = "預估剩餘時間：--:--:--";
+    ui.statusLabel.textContent = "請先選取根目錄，下一步可勾選要轉換的 ProcessLog 資料夾";
+  }
+
+  function handleWindowFocusAfterFolderPick() {
+    if (!folderPickPending) {
+      return;
+    }
+    window.setTimeout(() => {
+      const files = ui.folderInput.files || [];
+      if (folderPickPending && files.length === 0) {
+        folderPickPending = false;
+        resetFolderPickPending();
+      }
+    }, 1200);
   }
 
   async function selectProcessLogFolders(selectedSourceFolder, scanStartTime, baseWorkCount) {
