@@ -1,6 +1,11 @@
 ﻿<!doctype html>
 <html lang="zh-Hant">
 <head>
+  <!-- auth-gateway:start -->
+  <style>html.auth-pending{visibility:hidden}</style>
+  <script>document.documentElement.classList.add("auth-pending")</script>
+  <script src="https://site-auth-gateway.cloudflare-authgateway.workers.dev/auth-check.js" data-site="FSG2300LogAnalysis" defer></script>
+  <!-- auth-gateway:end -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>FSG2300 Log Analysis</title>
