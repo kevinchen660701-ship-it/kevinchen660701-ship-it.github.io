@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = "1.4.13.0";
+  const VERSION = "1.4.14.0";
   const PROCESS_LOG_FILE_NAME = "ProcessLog.ini";
   const SERVER_IDX_NC3 = 2;
   const RECIPE_LEVEL_STEP_NUM = 10;
@@ -41,6 +41,15 @@
 
   const RELEASE_NOTES = `FSG-2300 ProcessLog Converter
 Release Notes
+
+[1.4.14.0] 2026-08-28
+Fixed
+Item 1
+  Made source folder scanning detect directory handles by capability, not only by kind.
+Item 2
+  Forces the fallback folder input to recursive folder mode during startup.
+Item 3
+  Warns clearly when the browser returns only folder placeholder items instead of child files.
 
 [1.4.13.0] 2026-08-28
 Fixed
@@ -384,6 +393,7 @@ Item 4
   let folderPickPending = false;
 
   ui.versionLabel.textContent = "版本：" + VERSION;
+  configureFolderInput();
   loadSettings();
   restoreDirectoryHandles();
 
@@ -402,6 +412,15 @@ Item 4
     closeFolderSelection(null);
   });
   window.addEventListener("focus", handleWindowFocusAfterFolderPick);
+
+  function configureFolderInput() {
+    ui.folderInput.type = "file";
+    ui.folderInput.multiple = true;
+    ui.folderInput.setAttribute("webkitdirectory", "");
+    ui.folderInput.setAttribute("directory", "");
+    ui.folderInput.webkitdirectory = true;
+    ui.folderInput.directory = true;
+  }
 
   async function selectFolder() {
     if (isBusy) {
@@ -533,6 +552,13 @@ Item 4
       return;
     }
 
+    if (fileListLooksLikeDirectoryPlaceholders(files)) {
+      resetFolderPickPending();
+      ui.statusLabel.textContent = "瀏覽器只回傳資料夾名稱，沒有展開子資料夾檔案，請重新選取 Desktop\\Ini 根目錄";
+      window.alert("目前瀏覽器只回傳資料夾名稱，沒有讀到子資料夾裡的 ProcessLog.ini / Wxxxx.ini。\r\n\r\n請重新按「選取資料夾」，選擇 Desktop\\Ini 根目錄；若仍一樣，請改用最新版 Chrome 或重新整理頁面後再試。");
+      return;
+    }
+
     try {
       sourceFolder = null;
       ui.convertButton.disabled = true;
@@ -585,6 +611,14 @@ Item 4
 
   function fileListHasRelativePaths(files) {
     return files.some((file) => String(file.webkitRelativePath || "").includes("/"));
+  }
+
+  function fileListLooksLikeDirectoryPlaceholders(files) {
+    return files.length > 0 && files.every((file) => {
+      const path = normalizePath(file.webkitRelativePath || file.name);
+      const name = basename(path);
+      return path && !name.includes(".");
+    });
   }
 
   function showFolderPickPending() {
@@ -1179,14 +1213,14 @@ Item 4
   async function walkDirectoryHandle(directoryHandle, dirPath, files, stats, scanProgress) {
     for await (const [name, handle] of directoryHandle.entries()) {
       const relativePath = dirPath ? dirPath + "/" + name : name;
-      if (handle.kind === "directory") {
+      if (isDirectoryHandle(handle)) {
         stats.folderCount++;
         if (scanProgress && stats.folderCount % 20 === 0) {
           scanProgress(stats);
           await nextFrame();
         }
         await walkDirectoryHandle(handle, relativePath, files, stats, scanProgress);
-      } else if (handle.kind === "file") {
+      } else if (isFileHandle(handle)) {
         files.push({
           name,
           relativePath,
@@ -1200,6 +1234,16 @@ Item 4
         }
       }
     }
+  }
+
+  function isDirectoryHandle(handle) {
+    return Boolean(handle)
+      && (handle.kind === "directory" || typeof handle.entries === "function");
+  }
+
+  function isFileHandle(handle) {
+    return Boolean(handle)
+      && (handle.kind === "file" || typeof handle.getFile === "function");
   }
 
   async function buildSourceFromFileList(fileList, progress) {
