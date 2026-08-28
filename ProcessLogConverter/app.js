@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = "1.4.9.0";
+  const VERSION = "1.4.10.0";
   const PROCESS_LOG_FILE_NAME = "ProcessLog.ini";
   const SERVER_IDX_NC3 = 2;
   const RECIPE_LEVEL_STEP_NUM = 10;
@@ -41,6 +41,13 @@
 
   const RELEASE_NOTES = `FSG-2300 ProcessLog Converter
 Release Notes
+
+[1.4.10.0] 2026-08-28
+Changed
+Item 1
+  Added folder loading progress while scanning uploaded ProcessLog folders.
+Item 2
+  Folder selection list counting is now built during the scan to reduce waiting time.
 
 [1.4.9.0] 2026-08-28
 Changed
@@ -392,9 +399,19 @@ Item 4
     }
 
     try {
+      sourceFolder = null;
+      ui.convertButton.disabled = true;
+      ui.selectFolderButton.disabled = true;
+      ui.releaseNoteButton.disabled = true;
       await clearDirectoryHandle("sourceHandle");
-      const selectedSourceFolder = await buildSourceFromFileList(files);
-      const filteredSourceFolder = await selectProcessLogFolders(selectedSourceFolder);
+      const scanStartTime = performance.now();
+      reportFolderLoadProgress(0, files.length + 1, "正在載入資料夾：準備掃描 " + files.length + " 個檔案", scanStartTime);
+      await nextFrame();
+
+      const selectedSourceFolder = await buildSourceFromFileList(files, (completed, total, message) => {
+        reportFolderLoadProgress(completed, total + 1, message, scanStartTime);
+      });
+      const filteredSourceFolder = await selectProcessLogFolders(selectedSourceFolder, scanStartTime, files.length * 2);
       if (filteredSourceFolder) {
         sourceFolder = filteredSourceFolder;
         saveSourceFolderName(sourceFolder.rootName);
@@ -403,26 +420,41 @@ Item 4
         clearSourceFolderName();
         ui.sourceFolderLabel.textContent = "來源資料夾：未選取";
         sourceFolder = null;
+        ui.progressBar.value = 0;
+        ui.remainTimeLabel.textContent = "預估剩餘時間：--:--:--";
         ui.statusLabel.textContent = buildProcessLogNotFoundMessage(selectedSourceFolder, "剛選的資料夾");
         ui.convertButton.disabled = true;
         return;
       } else {
+        ui.progressBar.value = 0;
+        ui.remainTimeLabel.textContent = "預估剩餘時間：--:--:--";
+        ui.statusLabel.textContent = "已取消選取資料夾";
         return;
       }
 
       ui.convertButton.disabled = false;
+      ui.progressBar.value = 100;
+      ui.remainTimeLabel.textContent = "預估剩餘時間：00:00:00";
       ui.statusLabel.textContent = "已勾選資料夾，請按「轉換檔案」開始轉換";
     } catch (error) {
+      ui.progressBar.value = 0;
+      ui.remainTimeLabel.textContent = "預估剩餘時間：--:--:--";
       showError(error);
+    } finally {
+      ui.selectFolderButton.disabled = false;
+      ui.releaseNoteButton.disabled = false;
     }
   }
 
-  async function selectProcessLogFolders(selectedSourceFolder) {
-    const choices = buildFolderSelectionChoices(selectedSourceFolder);
+  async function selectProcessLogFolders(selectedSourceFolder, scanStartTime, baseWorkCount) {
+    const choices = await buildFolderSelectionChoices(selectedSourceFolder, (completed, total, message) => {
+      reportFolderLoadProgress(baseWorkCount + completed, baseWorkCount + total + 1, message, scanStartTime);
+    });
     if (choices.length === 0) {
       return null;
     }
 
+    reportFolderLoadProgress(baseWorkCount + choices.length + 1, baseWorkCount + choices.length + 1, "資料夾清單載入完成，請勾選要轉換的資料夾", scanStartTime);
     const selectedFolders = await showFolderSelectionDialog(selectedSourceFolder, choices);
     if (!selectedFolders || selectedFolders.length === 0) {
       return null;
@@ -438,12 +470,29 @@ Item 4
     return filteredSource;
   }
 
-  function buildFolderSelectionChoices(source) {
-    return getProcessLogFolders(source).map((folderPath) => ({
-      folderPath,
-      displayName: folderPath || source.rootName,
-      waferCount: getWaferFiles(source, folderPath).length
-    }));
+  async function buildFolderSelectionChoices(source, progress) {
+    const folders = getProcessLogFolders(source);
+    const choices = [];
+    const total = Math.max(1, folders.length);
+
+    for (let i = 0; i < folders.length; i++) {
+      const folderPath = folders[i];
+      choices.push({
+        folderPath,
+        displayName: folderPath || source.rootName,
+        waferCount: getWaferFiles(source, folderPath).length
+      });
+
+      if (i % 25 === 0 || i === folders.length - 1) {
+        const completed = i + 1;
+        if (progress) {
+          progress(completed, total, "正在統計資料夾 Wafer 筆數：" + completed + " / " + folders.length);
+        }
+        await nextFrame();
+      }
+    }
+
+    return choices;
   }
 
   function showFolderSelectionDialog(source, choices) {
@@ -679,7 +728,18 @@ Item 4
     if (message) {
       ui.statusLabel.textContent = message;
     }
-    ui.remainTimeLabel.textContent = "預估剩餘時間：" + getRemainingTimeText(safePercent);
+    ui.remainTimeLabel.textContent = "預估剩餘時間：" + getRemainingTimeText(safePercent, convertStartTime);
+  }
+
+  function reportFolderLoadProgress(completed, total, message, startTime) {
+    const safeTotal = Math.max(1, total);
+    const safeCompleted = Math.max(0, Math.min(safeTotal, completed));
+    const percent = Math.round((safeCompleted * 100) / safeTotal);
+    ui.progressBar.value = percent;
+    if (message) {
+      ui.statusLabel.textContent = message;
+    }
+    ui.remainTimeLabel.textContent = "預估剩餘時間：" + getRemainingTimeText(percent, startTime);
   }
 
   function reportWriteProgress(index, total, path) {
@@ -687,14 +747,14 @@ Item 4
     reportProgress(percent, "正在寫入 " + path);
   }
 
-  function getRemainingTimeText(percent) {
-    if (percent <= 0 || !convertStartTime) {
+  function getRemainingTimeText(percent, startTime) {
+    if (percent <= 0 || !startTime) {
       return "計算中";
     }
     if (percent >= 100) {
       return "00:00:00";
     }
-    const elapsedMs = performance.now() - convertStartTime;
+    const elapsedMs = performance.now() - startTime;
     const totalMs = elapsedMs * 100 / percent;
     return formatDuration(Math.max(0, totalMs - elapsedMs));
   }
@@ -914,52 +974,99 @@ Item 4
     }
   }
 
-  async function buildSourceFromFileList(fileList) {
+  async function buildSourceFromFileList(fileList, progress) {
     const firstPath = fileList[0].webkitRelativePath || fileList[0].name;
     const rootName = firstPath.includes("/") ? firstPath.split("/")[0] : "SelectedFolder";
-    const files = fileList.map((file) => {
+    const files = [];
+    const total = Math.max(1, fileList.length);
+
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
       const browserPath = file.webkitRelativePath || file.name;
       const relativePath = browserPath.startsWith(rootName + "/")
         ? browserPath.slice(rootName.length + 1)
         : browserPath;
-      return {
+      files.push({
         name: file.name,
         relativePath,
         dirPath: dirname(relativePath),
         getText: async () => readFileText(file)
-      };
-    });
-    return makeSource(rootName, files);
+      });
+
+      if (i % 250 === 0 || i === fileList.length - 1) {
+        const completed = i + 1;
+        if (progress) {
+          progress(completed, total, "正在讀取資料夾檔案清單：" + completed + " / " + fileList.length);
+        }
+        await nextFrame();
+      }
+    }
+
+    return await makeSourceAsync(rootName, files, progress, total);
   }
 
   function makeSource(rootName, files) {
-    const byPath = new Map();
-    const byDir = new Map();
-    for (const file of files) {
-      const normalizedPath = normalizePath(file.relativePath);
-      const dirPath = dirname(normalizedPath);
-      const entry = {
-        name: basename(normalizedPath),
-        relativePath: normalizedPath,
-        dirPath,
-        getText: file.getText
-      };
-      byPath.set(normalizedPath.toLowerCase(), entry);
-      if (!byDir.has(dirPath.toLowerCase())) {
-        byDir.set(dirPath.toLowerCase(), []);
+    return buildSourceIndex(rootName, files);
+  }
+
+  async function makeSourceAsync(rootName, files, progress, offset) {
+    const source = buildEmptySource(rootName, files);
+    const total = Math.max(1, files.length);
+
+    for (let i = 0; i < files.length; i++) {
+      addFileToSource(source, files[i]);
+      if (i % 250 === 0 || i === files.length - 1) {
+        const completed = i + 1;
+        if (progress) {
+          progress(offset + completed, offset + total, "正在建立資料夾索引：" + completed + " / " + files.length);
+        }
+        await nextFrame();
       }
-      byDir.get(dirPath.toLowerCase()).push(entry);
     }
-    for (const list of byDir.values()) {
-      list.sort(comparePath);
+
+    sortSourceDirectories(source);
+    return source;
+  }
+
+  function buildSourceIndex(rootName, files) {
+    const source = buildEmptySource(rootName, files);
+    for (const file of files) {
+      addFileToSource(source, file);
     }
+    sortSourceDirectories(source);
+    return source;
+  }
+
+  function buildEmptySource(rootName, files) {
     return {
       displayName: rootName,
       rootName,
       files,
-      byPath,
-      byDir
+      byPath: new Map(),
+      byDir: new Map()
     };
+  }
+
+  function addFileToSource(source, file) {
+    const normalizedPath = normalizePath(file.relativePath);
+    const dirPath = dirname(normalizedPath);
+    const entry = {
+      name: basename(normalizedPath),
+      relativePath: normalizedPath,
+      dirPath,
+      getText: file.getText
+    };
+    source.byPath.set(normalizedPath.toLowerCase(), entry);
+    if (!source.byDir.has(dirPath.toLowerCase())) {
+      source.byDir.set(dirPath.toLowerCase(), []);
+    }
+    source.byDir.get(dirPath.toLowerCase()).push(entry);
+  }
+
+  function sortSourceDirectories(source) {
+    for (const list of source.byDir.values()) {
+      list.sort(comparePath);
+    }
   }
 
   async function readFileText(file) {
