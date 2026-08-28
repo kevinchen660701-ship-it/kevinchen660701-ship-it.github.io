@@ -1,7 +1,7 @@
 (function () {
   "use strict";
 
-  const VERSION = "1.4.12.0";
+  const VERSION = "1.4.13.0";
   const PROCESS_LOG_FILE_NAME = "ProcessLog.ini";
   const SERVER_IDX_NC3 = 2;
   const RECIPE_LEVEL_STEP_NUM = 10;
@@ -41,6 +41,15 @@
 
   const RELEASE_NOTES = `FSG-2300 ProcessLog Converter
 Release Notes
+
+[1.4.13.0] 2026-08-28
+Fixed
+Item 1
+  Ensured the folder checkbox dialog opens after the loading dialog closes.
+Item 2
+  Added a fallback display path if the browser cannot open the checkbox dialog as a modal.
+Item 3
+  Detects folder-upload selections that do not include recursive subfolder files.
 
 [1.4.12.0] 2026-08-28
 Changed
@@ -487,7 +496,7 @@ Item 4
       ui.remainTimeLabel.textContent = "預估剩餘時間：--:--:--";
       showError(error);
     } finally {
-      hideLoadingDialog();
+      await hideLoadingDialog();
       ui.selectFolderButton.disabled = false;
       ui.releaseNoteButton.disabled = false;
     }
@@ -514,6 +523,13 @@ Item 4
     const files = Array.from(event.target.files || []);
     if (files.length === 0) {
       resetFolderPickPending();
+      return;
+    }
+
+    if (!fileListHasRelativePaths(files)) {
+      resetFolderPickPending();
+      ui.statusLabel.textContent = "瀏覽器沒有提供子資料夾檔案清單，請重新按「選取資料夾」並選擇含 ProcessLog 子資料夾的根目錄";
+      window.alert("目前選取結果沒有包含子資料夾內容，無法建立資料夾勾選清單。\r\n\r\n請重新按「選取資料夾」，選擇 Desktop\\Ini 或含 ProcessLog 子資料夾的根目錄。");
       return;
     }
 
@@ -561,10 +577,14 @@ Item 4
       ui.remainTimeLabel.textContent = "預估剩餘時間：--:--:--";
       showError(error);
     } finally {
-      hideLoadingDialog();
+      await hideLoadingDialog();
       ui.selectFolderButton.disabled = false;
       ui.releaseNoteButton.disabled = false;
     }
+  }
+
+  function fileListHasRelativePaths(files) {
+    return files.some((file) => String(file.webkitRelativePath || "").includes("/"));
   }
 
   function showFolderPickPending() {
@@ -602,7 +622,7 @@ Item 4
     }
 
     reportFolderLoadProgress(baseWorkCount + choices.length + 1, baseWorkCount + choices.length + 1, "資料夾清單載入完成，請勾選要轉換的資料夾", scanStartTime);
-    hideLoadingDialog();
+    await hideLoadingDialog();
     const selectedFolders = await showFolderSelectionDialog(selectedSourceFolder, choices);
     if (!selectedFolders || selectedFolders.length === 0) {
       return null;
@@ -643,13 +663,20 @@ Item 4
     return choices;
   }
 
-  function showFolderSelectionDialog(source, choices) {
+  async function showFolderSelectionDialog(source, choices) {
     renderFolderSelection(source, choices);
-    if (typeof ui.folderSelectionDialog.showModal === "function") {
-      ui.folderSelectionDialog.showModal();
-    } else {
+    await nextFrame();
+
+    if (typeof ui.folderSelectionDialog.showModal !== "function") {
       const allFolders = choices.map((choice) => choice.folderPath);
       return Promise.resolve(allFolders);
+    }
+
+    try {
+      ui.folderSelectionDialog.showModal();
+    } catch (error) {
+      ui.folderSelectionDialog.setAttribute("open", "");
+      ui.statusLabel.textContent = "資料夾清單已載入，請在選擇視窗勾選要轉換的資料夾";
     }
 
     return new Promise((resolve) => {
@@ -907,9 +934,10 @@ Item 4
     }
   }
 
-  function hideLoadingDialog() {
+  async function hideLoadingDialog() {
     if (ui.loadingDialog && ui.loadingDialog.open) {
       ui.loadingDialog.close();
+      await nextFrame();
     }
   }
 
