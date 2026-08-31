@@ -3,8 +3,17 @@
 <head>
   <!-- auth-gateway:start -->
   <style>html.auth-pending{visibility:hidden}</style>
-  <script>document.documentElement.classList.add("auth-pending")</script>
-  <script src="https://site-auth-gateway.cloudflare-authgateway.workers.dev/auth-check.js" data-site="FSG2300LogAnalysis" defer></script>
+  <script>
+    (function(){
+      if (location.protocol === "file:") return;
+      document.documentElement.classList.add("auth-pending");
+      var authScript = document.createElement("script");
+      authScript.src = "https://site-auth-gateway.cloudflare-authgateway.workers.dev/auth-check.js";
+      authScript.dataset.site = "FSG2300LogAnalysis";
+      authScript.defer = true;
+      document.head.appendChild(authScript);
+    })();
+  </script>
   <!-- auth-gateway:end -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -96,15 +105,16 @@
       position: absolute;
       left: 806px;
       right: 104px;
-      top: 14px;
-      height: 30px;
-      display: flex;
-      align-items: center;
+      top: 8px;
+      height: 44px;
+      display: block;
       color: #505050;
-      font: 13px Consolas, monospace;
-      white-space: nowrap;
+      font: 12px Consolas, monospace;
+      line-height: 1.35;
+      white-space: normal;
       overflow: hidden;
       text-overflow: ellipsis;
+      word-break: break-all;
     }
     #lblVersion {
       position: absolute;
@@ -269,6 +279,8 @@
     .s1results { height: 100%; min-height: 0; overflow-y: auto; overflow-x: auto; scrollbar-gutter: stable; border-bottom: 1px solid #c8d0da; }
     .s1results tr { cursor: pointer; }
     .s1results tr.active td { background: #dbeafe; }
+    .s1rowbtn { height: 22px; min-width: 54px; padding: 0 10px; border: 1px solid #9aa8ba; background: linear-gradient(#fff, #e8edf4); color: #111827; cursor: pointer; }
+    .s1rowbtn:hover { background: linear-gradient(#ffffff, #dce8f6); }
     .s1chartwrap { display: grid; grid-template-rows: 26px minmax(0, 1fr); min-height: 0; }
     .s1charttitle { display: flex; align-items: center; gap: 8px; padding: 0 8px; background: #fff; color: #111827; font: 13px Consolas, "Microsoft JhengHei", monospace; }
     .s1charttitle span { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; text-align: center; }
@@ -404,7 +416,7 @@
       <button id="btnLangEn" class="langbtn">EN</button>
       <button id="btnAbout">?</button>
       <div id="lblPath">尚未載入</div>
-      <div id="lblVersion">v1.8.27</div>
+      <div id="lblVersion">v1.8.30</div>
       <input id="folderInput" class="hidden" type="file" webkitdirectory directory multiple>
       <input id="singleFileInput" class="hidden" type="file" accept=".csv,.ini">
       <input id="s1PeakInput" class="hidden" type="file" webkitdirectory directory multiple>
@@ -636,7 +648,7 @@
       calculateWaits(state.records);
       calculateFallbackMetrics(state.info, state.records);
       if (!state.records.length) throw new Error("No wafer batch records.");
-      $("lblPath").textContent = state.folderName || "Loaded";
+      setDisplayedPath(state.folderName || "Loaded", false);
       $("btnPPT").disabled = false;
       $("rtbAI").value = "";
       renderAll();
@@ -819,6 +831,13 @@
       en:{param:"Parameter",g1Rough:"G1 Rough",g2Fine:"G2 Fine",wafer:"Wafer#",waferNo:"Wafer No:",orOpen:"or open file:",load:"Load from batch",browse:"Browse...",notLoaded:"Not loaded",loading:"Loading...",noData:"No data",stat:"Statistic",avg:"Average",std:"Std Dev",max:"Maximum",min:"Minimum",count:"Samples",machine:"Machine",sn:"SN",recipe:"Recipe",wafers:"Wafers",removal:"Removal",postLift:"Post-lift Removal",um:"um",sec:"sec",loadingY:"S1 Loading (%)",removalTitle:"G1/G2 Removal (OK wafers)",postLiftTitle:"G1/G2 Post-lift Removal (OK wafers)",loadingOverall:"G1 / G2 S1 Peak Loading (Average)",g1Load:"G1 Rough S1 Peak (%)",g2Load:"G2 Fine S1 Peak (%)",distTitle:"G1/G2 Chuck S1 Peak Distribution (Q1/Q3 Box)",timeTitle:"Process Time / Wait Time (OK wafers)",g1Sec:"G1 Process sec",g2Sec:"G2 Process sec",g1Wait:"G1 Wait Time",g2Wait:"G2 Wait Time",wear:"Average Wear Rate",wearY:"Wear Rate",wearNote:"lower = more durable wheel",perWafer:"Per-wafer Rate",average:"Average",thicknessTitle:"G1 After-grind / G2 Product Thickness (OK wafers)",g1Thick:"G1 After-grind Thickness",g2Thick:"G2 Product Thickness",thickY:"Thickness (um)",seqTitle:"Loading Sequence",parTitle:"Loading Parallel",overall:"G1 / G2 Overview",smooth:"Smooth",s1Peak:"S1 Peak",aiSvc:"AI Service:",result:"Result",income:"Income",alertBatch:"Load batch data first.",alertWafer:"Wafer file not found."}
     };
     function L(){return uiText[state.lang]||uiText.tw;}
+    function setDisplayedPath(path, targetInput=true){
+      const value=String(path||"").replace(/\\/g,"/");
+      const top=$("lblPath");
+      if(top){top.textContent=value||L().notLoaded;top.title=value||"";}
+      const input=$("txtSingleFile");
+      if(targetInput&&input){input.value=value;input.title=value;}
+    }
     function asCell(v){return typeof v==="number"?fmt(v,4):(v??"-");}
     function roughFineName(name){const l=L(),n=String(name||"");if(/粗磨/.test(n)&&!/^G1/.test(n))return l.g1Rough;if(/[細细]磨/.test(n)&&!/^G2/.test(n))return l.g2Fine;return n;}
     function setInputLabel(id,text){const el=$(id);const p=el&&el.parentNode;if(!p)return;let node=[...p.childNodes].find(n=>n.nodeType===3&&n.nodeValue.trim());if(node)node.nodeValue=" "+text;else p.appendChild(document.createTextNode(" "+text));}
@@ -835,8 +854,9 @@
     function renderThickness(){const l=L(),s=[];if($("chkThickG1").checked)s.push({name:l.g1Thick,color:"#004c99",points:okSeries("G1","g1LastWaferMin")});if($("chkThickG2").checked)s.push({name:l.g2Thick,color:"#d81e05",points:okSeries("G2","g2LastWaferMin")});drawLines($("chtThickness"),s,l.wafer,l.thickY,l.thicknessTitle);}
     function renderSeq(){if(!state.seqLoaded)return;const l=L();drawLines($("chtLoadingSeqG1"),sequenceSeries("g1",20),"sec",l.loadingY,`G1 ${l.g1Rough.replace(/^G1\s*/,"")} ${l.seqTitle}`);drawLines($("chtLoadingSeqG2"),sequenceSeries("g2",20),"sec",l.loadingY,`G2 ${l.g2Fine.replace(/^G2\s*/,"")} ${l.seqTitle}`);}
     function renderPar(){if(!state.seqLoaded)return;const l=L(),selected=[...document.querySelectorAll(".chkPar")].filter(x=>x.checked).map(x=>int(x.value));drawLines($("chtLoadingParG1"),parallelSeries("g1",selected),"sec",l.loadingY,`G1 ${l.g1Rough.replace(/^G1\s*/,"")} ${l.parTitle}`);drawLines($("chtLoadingParG2"),parallelSeries("g2",selected),"sec",l.loadingY,`G2 ${l.g2Fine.replace(/^G2\s*/,"")} ${l.parTitle}`);}
-    async function loadSingleWafer(file){if(!file)return;$("lblPath").textContent=file.name;const data=await parseWafer(file);state.singleData=data;$("txtSingleFile").value=file.name;activateTab("single");setTimeout(renderSingleWaferCharts,35);}
+    async function loadSingleWafer(file){if(!file)return;const source=s1FileRelativePath(file)||file.name;const data=await parseWafer(file);data.fullPath=data.fullPath||source;state.singleData=data;setDisplayedPath(source,true);activateTab("single");setTimeout(renderSingleWaferCharts,35);}
     function activeSingleId(){return $("singleG2")?.classList?.contains?.("active")?"singleG2":"singleG1";}
+    function selectSingleSubtab(id){document.querySelectorAll(".subtab").forEach(b=>b.classList.toggle("active",b.dataset.sub===id));document.querySelectorAll(".subpage").forEach(p=>p.classList.toggle("active",p.id===id));}
     function renderSingleWaferCharts(){const data=state.singleData;if(!data)return;const l=L(),g2=activeSingleId()==="singleG2";drawSingleChart($(g2?"chtSingleG2":"chtSingleG1"),g2?data.g2Steps:data.g1Steps,`${g2?l.g2Fine:l.g1Rough}  Chuck#${data.chuck||"-"}  ${l.income}=${fmt(g2?data.g2Income:data.g1Income,1)}um  ${l.result}:${(g2?data.g2Result:data.g1Result)||"-"}`);}
     async function loadWaferFromBatch(){const l=L();if(!state.records.length)return alert(l.alertBatch);const n=int($("nudWaferNo").value),f=findWaferFile(n);if(!f)return alert(`${l.alertWafer} W${String(n).padStart(4,"0")}`);await loadSingleWafer(f);}
     function legendRows(ctx,series,x,maxW){ctx.font="12px Consolas, monospace";let cx=x,rows=1;for(const s of series){const w=Math.min(230,ctx.measureText(roughFineName(s.name)).width+42);if(cx+w>maxW&&rows<2){cx=x;rows++;}cx+=w+14;}return rows;}
@@ -1555,8 +1575,20 @@
       $("btnS1PeakPPT").disabled=!items.length;
       if(!items.length){$("dgvS1PeakResults").innerHTML='<table><tbody><tr><td>未找到異常 peak</td></tr></tbody></table>';return;}
       if(!shown.length){$("dgvS1PeakResults").innerHTML='<table><tbody><tr><td>沒有符合顯示條件的資料</td></tr></tbody></table>';return;}
-      const rows=shown.map(({x,i},displayIndex)=>`<tr data-s1idx="${i}" class="${i===s.selected?"active":""}"><td>${displayIndex+1}</td><td>${escHtml(x.folder)}</td><td>${escHtml(x.fileName)}</td><td>W${String(x.wafer).padStart(4,"0")}</td><td>${x.g}</td><td>C${x.ch||"-"}</td><td>${escHtml(x.result)}</td><td>${fmt(x.sec,1)}</td><td>${fmt(x.peak,1)}</td><td>${fmt(x.baseline,1)}</td><td>${fmt(x.delta,1)}</td><td>${fmt(x.slope,2)}</td><td>${escHtml(x.reason||"")}</td></tr>`).join("");
-      $("dgvS1PeakResults").innerHTML=`<table><thead><tr><th>#</th><th>所在資料夾</th><th>檔案</th><th>Wafer</th><th>站別</th><th>Chuck</th><th>結果</th><th>秒</th><th>S1 Peak</th><th>基準</th><th>差異</th><th>斜率</th><th>判定</th></tr></thead><tbody>${rows}</tbody></table>`;
+      const rows=shown.map(({x,i},displayIndex)=>`<tr data-s1idx="${i}" class="${i===s.selected?"active":""}"><td>${displayIndex+1}</td><td>${escHtml(x.folder)}</td><td>${escHtml(x.fileName)}</td><td>W${String(x.wafer).padStart(4,"0")}</td><td>${x.g}</td><td>C${x.ch||"-"}</td><td>${escHtml(x.result)}</td><td>${fmt(x.sec,1)}</td><td>${fmt(x.peak,1)}</td><td>${fmt(x.baseline,1)}</td><td>${fmt(x.delta,1)}</td><td>${fmt(x.slope,2)}</td><td>${escHtml(x.reason||"")}</td><td><button type="button" class="s1rowbtn" data-s1-single="${i}">顯示</button></td></tr>`).join("");
+      $("dgvS1PeakResults").innerHTML=`<table><thead><tr><th>#</th><th>所在資料夾</th><th>檔案</th><th>Wafer</th><th>站別</th><th>Chuck</th><th>結果</th><th>秒</th><th>S1 Peak</th><th>基準</th><th>差異</th><th>斜率</th><th>判定</th><th>單片圖形</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+    async function showS1PeakSingleWafer(index){
+      const item=(state.s1PeakCheck.items||[])[index];
+      if(!item)return;
+      const data=item.data||await parseS1PeakWaferFile(item.fileRef,state.s1PeakCheck.folderName);
+      item.data=data;
+      state.singleData=data;
+      const source=item.path||data.fullPath||s1FileRelativePath(item.fileRef)||item.fileName||"";
+      setDisplayedPath(source,true);
+      selectSingleSubtab(item.g==="G2"?"singleG2":"singleG1");
+      activateTab("single");
+      setTimeout(renderSingleWaferCharts,35);
     }
     function s1PeakZoomOptions(series,item){
       const pts=series.flatMap(s=>s.points||[]).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
@@ -1710,6 +1742,16 @@
     function releaseNotes(){
       if(state.lang==="en")return [
         "FSG2300 Log Analysis Release Notes",
+        "",
+        "v1.8.30",
+        "- Improved path display: the top path area can show two lines and full paths are available in tooltips.",
+        "",
+        "v1.8.29",
+        "- Local file opening now bypasses the website auth gateway; GitHub Pages still uses the login check.",
+        "",
+        "v1.8.28",
+        "- Added the Single Graph column and Show button in S1 Peak results to open the selected wafer in Single Wafer analysis.",
+        "- Single Wafer analysis shows the selected source path when opened from S1 Peak results.",
         "",
         "v1.8.27",
         "- Fixed the S1 Peak Sample delta red line so it overlays the blue sudden-jump segment.",
@@ -1921,6 +1963,16 @@
       if(state.lang==="cn")return [
         "FSG2300 Log Analysis Release 说明",
         "",
+        "v1.8.30",
+        "- 改善路径显示：上方路径区域可显示两行，滑鼠停留可查看完整路径提示。",
+        "",
+        "v1.8.29",
+        "- 本机 file:// 开启时不再进入网站登入检查；GitHub Pages 网站版仍会执行登入验证。",
+        "",
+        "v1.8.28",
+        "- S1 Peak 结果新增「单片图形」栏位与「显示」按钮，可将选取 wafer 开启到单片分析。",
+        "- 从 S1 Peak 结果开启单片分析时，会显示选取资料的来源路径。",
+        "",
         "v1.8.27",
         "- 修正 S1 Peak Sample 差异值红线位置，使红线贴齐蓝色突然跳升段。",
         "",
@@ -2130,6 +2182,16 @@
       ].join("\n");
       return [
         "FSG2300 Log Analysis Release 說明",
+        "",
+        "v1.8.30",
+        "- 改善路徑顯示：上方路徑區域可顯示兩行，滑鼠停留可查看完整路徑提示。",
+        "",
+        "v1.8.29",
+        "- 本機 file:// 開啟時不再進入網站登入檢查；GitHub Pages 網站版仍會執行登入驗證。",
+        "",
+        "v1.8.28",
+        "- S1 Peak 結果新增「單片圖形」欄位與「顯示」按鈕，可將選取 wafer 開啟到單片分析。",
+        "- 從 S1 Peak 結果開啟單片分析時，會顯示選取資料的來源路徑。",
         "",
         "v1.8.27",
         "- 修正 S1 Peak Sample 差異值紅線位置，使紅線貼齊藍色突然跳升段。",
@@ -2358,7 +2420,7 @@
     ["txtS1RapidSlopeG1","txtS1RapidSlopeG2","txtS1SlopeG1","txtS1SlopeG2"].forEach(id=>$(id).addEventListener("change", saveS1Slope));
     ["chkS1ShowG1","chkS1ShowG2","chkS1ShowDelta","chkS1ShowRapid","chkS1ShowSlow","chkS1ShowChuck1","chkS1ShowChuck2","chkS1ShowChuck3"].forEach(id=>$(id).addEventListener("change", applyS1DisplayFilter));
     $("btnAbout").addEventListener("click", ()=>alert(releaseNotes()));
-    $("folderInput").addEventListener("change", async e=>{try{$("lblPath").textContent="Loading...";await loadBatchFromFiles([...e.target.files]);}catch(err){alert(err.message||String(err));$("lblPath").textContent=tr[state.lang].notLoaded;}});
+    $("folderInput").addEventListener("change", async e=>{try{setDisplayedPath("Loading...",false);await loadBatchFromFiles([...e.target.files]);}catch(err){alert(err.message||String(err));setDisplayedPath(tr[state.lang].notLoaded,false);}});
     $("singleFileInput").addEventListener("change", e=>loadSingleWafer(e.target.files[0]).catch(err=>alert(err.message||String(err))));
     $("s1PeakInput").addEventListener("change", e=>{
       const added=addS1PeakFolderSelection(e.target.files);
@@ -2371,7 +2433,7 @@
     $("btnOpenSingle").addEventListener("click", ()=>$("singleFileInput").click());
     $("btnLoadWafer").addEventListener("click", ()=>loadWaferFromBatch().catch(err=>alert(err.message||String(err))));
     document.querySelectorAll(".tab").forEach(b=>b.addEventListener("click",()=>activateTab(b.dataset.tab)));
-    $("dgvS1PeakResults").addEventListener("click",e=>{const tr=e.target.closest("tr[data-s1idx]");if(tr)renderS1PeakChart(int(tr.dataset.s1idx));});
+    $("dgvS1PeakResults").addEventListener("click",e=>{const btn=e.target.closest("button[data-s1-single]");if(btn){e.stopPropagation();showS1PeakSingleWafer(int(btn.dataset.s1Single)).catch(err=>alert(err.message||String(err)));return;}const tr=e.target.closest("tr[data-s1idx]");if(tr)renderS1PeakChart(int(tr.dataset.s1idx));});
     document.querySelectorAll(".subtab").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".subtab").forEach(x=>x.classList.toggle("active",x===b));document.querySelectorAll(".subpage").forEach(p=>p.classList.toggle("active",p.id===b.dataset.sub));setTimeout(renderSingleWaferCharts,35);}));
     ["chkLoadChuck1","chkLoadChuck2","chkLoadChuck3","chkLoadOverall","chkThickG1","chkThickG2"].forEach(id=>$(id).addEventListener("change",renderAll));
     document.querySelectorAll(".chkPar").forEach(x=>x.addEventListener("change",renderPar));
