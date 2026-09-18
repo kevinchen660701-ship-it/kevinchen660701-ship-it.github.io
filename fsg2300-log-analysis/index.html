@@ -416,7 +416,7 @@
       <button id="btnLangEn" class="langbtn">EN</button>
       <button id="btnAbout">?</button>
       <div id="lblPath">尚未載入</div>
-      <div id="lblVersion">v1.8.30</div>
+      <div id="lblVersion">v1.8.31</div>
       <input id="folderInput" class="hidden" type="file" webkitdirectory directory multiple>
       <input id="singleFileInput" class="hidden" type="file" accept=".csv,.ini">
       <input id="s1PeakInput" class="hidden" type="file" webkitdirectory directory multiple>
@@ -508,7 +508,7 @@
         <section id="s1check" class="page">
           <div class="s1check">
             <div>
-              <div class="s1summary"><span id="lblS1PeakSummary">尚未執行 S1 peak檢查</span><label id="lblS1DeltaG1" for="txtS1DeltaG1">差異 G1</label><input id="txtS1DeltaG1" type="number" min="0.1" step="0.1" value="0.6"><label id="lblS1DeltaG2" for="txtS1DeltaG2">G2</label><input id="txtS1DeltaG2" type="number" min="0.1" step="0.1" value="0.6"><label id="lblS1RapidSlopeG1" for="txtS1RapidSlopeG1">急爬 G1</label><input id="txtS1RapidSlopeG1" type="number" min="0.01" step="0.01" value="0.5"><label id="lblS1RapidSlopeG2" for="txtS1RapidSlopeG2">G2</label><input id="txtS1RapidSlopeG2" type="number" min="0.01" step="0.01" value="0.5"><label id="lblS1SlopeG1" for="txtS1SlopeG1">緩爬 G1</label><input id="txtS1SlopeG1" type="number" min="0.01" step="0.01" value="0.5"><label id="lblS1SlopeG2" for="txtS1SlopeG2">G2</label><input id="txtS1SlopeG2" type="number" min="0.01" step="0.01" value="0.5"><button id="btnS1Sample">Sample</button><button id="btnS1PeakPPT" disabled>產出 PPT</button><label id="lblS1Display">顯示</label><label><input id="chkS1ShowG1" type="checkbox" checked>G1</label><label><input id="chkS1ShowG2" type="checkbox" checked>G2</label><label><input id="chkS1ShowDelta" type="checkbox" checked>S1負載差異值</label><label><input id="chkS1ShowRapid" type="checkbox" checked>急爬升斜率</label><label><input id="chkS1ShowSlow" type="checkbox" checked>緩爬升斜率</label><label><input id="chkS1ShowChuck1" type="checkbox" checked>Chuck1</label><label><input id="chkS1ShowChuck2" type="checkbox" checked>Chuck2</label><label><input id="chkS1ShowChuck3" type="checkbox" checked>Chuck3</label></div>
+              <div class="s1summary"><span id="lblS1PeakSummary">尚未執行 S1 peak檢查</span><label id="lblS1DeltaG1" for="txtS1DeltaG1">差異 G1</label><input id="txtS1DeltaG1" type="number" min="0.1" step="0.1" value="0.6"><label id="lblS1DeltaG2" for="txtS1DeltaG2">G2</label><input id="txtS1DeltaG2" type="number" min="0.1" step="0.1" value="0.6"><label id="lblS1RapidSlopeG1" for="txtS1RapidSlopeG1">急爬 G1</label><input id="txtS1RapidSlopeG1" type="number" min="0.01" step="0.01" value="0.5"><label id="lblS1RapidSlopeG2" for="txtS1RapidSlopeG2">G2</label><input id="txtS1RapidSlopeG2" type="number" min="0.01" step="0.01" value="0.5"><label id="lblS1SlopeG1" for="txtS1SlopeG1">緩爬 G1</label><input id="txtS1SlopeG1" type="number" min="0.01" step="0.01" value="0.5"><label id="lblS1SlopeG2" for="txtS1SlopeG2">G2</label><input id="txtS1SlopeG2" type="number" min="0.01" step="0.01" value="0.5"><button id="btnS1Sample">Sample</button><button id="btnS1PeakPPT" disabled>產出 PPT</button><label id="lblS1Display">顯示</label><label><input id="chkS1ShowG1" type="checkbox" checked>G1</label><label><input id="chkS1ShowG2" type="checkbox" checked>G2</label><label><input id="chkS1ShowDelta" type="checkbox" checked>S1負載差異值</label><label><input id="chkS1ShowRapid" type="checkbox" checked>急爬升斜率</label><label><input id="chkS1ShowSlow" type="checkbox" checked>緩爬升斜率</label><label><input id="chkS1ShowChuck1" type="checkbox" checked>Chuck1</label><label><input id="chkS1ShowChuck2" type="checkbox" checked>Chuck2</label><label><input id="chkS1ShowChuck3" type="checkbox" checked>Chuck3</label><label><input id="chkS1NgOnly" type="checkbox">只顯示 NG 片</label></div>
               <progress id="prgS1Peak" class="s1progress" value="0" max="1"></progress>
               <div id="dgvS1PeakResults" class="s1results"></div>
             </div>
@@ -1045,9 +1045,9 @@
     function s1SlopeValue(g="G1"){return s1InputValue(String(g).toUpperCase()==="G2"?"txtS1SlopeG2":"txtS1SlopeG1",S1_SLOPE_MIN);}
     function s1PeakLimits(){return {deltaG1:s1PeakDeltaValue("G1"),deltaG2:s1PeakDeltaValue("G2"),rapidG1:s1RapidSlopeValue("G1"),rapidG2:s1RapidSlopeValue("G2"),slowG1:s1SlopeValue("G1"),slowG2:s1SlopeValue("G2")};}
     function s1PeakLimitText(l=s1PeakLimits()){return `差異 G1>${fmt(l.deltaG1,1)} G2>${fmt(l.deltaG2,1)}  急爬 G1>${fmt(l.rapidG1,2)} G2>${fmt(l.rapidG2,2)}  緩爬 G1>${fmt(l.slowG1,2)} G2>${fmt(l.slowG2,2)}`;}
-    function s1DisplayFilters(){return {g1:$("chkS1ShowG1")?.checked!==false,g2:$("chkS1ShowG2")?.checked!==false,delta:$("chkS1ShowDelta")?.checked!==false,rapid:$("chkS1ShowRapid")?.checked!==false,slow:$("chkS1ShowSlow")?.checked!==false,chuck1:$("chkS1ShowChuck1")?.checked!==false,chuck2:$("chkS1ShowChuck2")?.checked!==false,chuck3:$("chkS1ShowChuck3")?.checked!==false};}
+    function s1DisplayFilters(){return {g1:$("chkS1ShowG1")?.checked!==false,g2:$("chkS1ShowG2")?.checked!==false,delta:$("chkS1ShowDelta")?.checked!==false,rapid:$("chkS1ShowRapid")?.checked!==false,slow:$("chkS1ShowSlow")?.checked!==false,chuck1:$("chkS1ShowChuck1")?.checked!==false,chuck2:$("chkS1ShowChuck2")?.checked!==false,chuck3:$("chkS1ShowChuck3")?.checked!==false,ngOnly:$("chkS1NgOnly")?.checked===true};}
     function s1ChuckAllowed(ch,f){const c=int(ch);if(c===1)return f.chuck1;if(c===2)return f.chuck2;if(c===3)return f.chuck3;return true;}
-    function s1DisplayAllowed(x,f=s1DisplayFilters()){if(!x)return false;if(String(x.g).toUpperCase()==="G2"?!f.g2:!f.g1)return false;if(!s1ChuckAllowed(x.ch,f))return false;const r=String(x.reason||"");if(r==="急升")return f.delta;if(r==="急爬升斜率")return f.rapid;if(r==="緩慢爬升斜率")return f.slow;return true;}
+    function s1DisplayAllowed(x,f=s1DisplayFilters()){if(!x)return false;if(String(x.g).toUpperCase()==="G2"?!f.g2:!f.g1)return false;if(!s1ChuckAllowed(x.ch,f))return false;if(f.ngOnly&&String(x.result||"").trim().toUpperCase()!=="NG")return false;const r=String(x.reason||"");if(r==="急升")return f.delta;if(r==="急爬升斜率")return f.rapid;if(r==="緩慢爬升斜率")return f.slow;return true;}
     function s1DisplayedRows(items=state.s1PeakCheck.items||[]){const f=s1DisplayFilters();return items.map((x,i)=>({x,i})).filter(r=>s1DisplayAllowed(r.x,f));}
     function clearS1PeakChart(text="未找到符合顯示條件"){const c=$("chtS1PeakCheck"),{ctx,w,h}=setupCanvas(c);ctx.clearRect(0,0,w,h);ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);ctx.fillStyle="#606a76";ctx.font="14px Microsoft JhengHei UI, Arial";ctx.textAlign="center";ctx.fillText(text,w/2,h/2);setChartTooltip(c,[]);$("lblS1PeakChart").textContent=text;}
     function applyS1DisplayFilter(){const rows=s1DisplayedRows();renderS1PeakResults();if(rows.length)renderS1PeakChart(rows[0].i);else clearS1PeakChart();}
@@ -1590,11 +1590,17 @@
       activateTab("single");
       setTimeout(renderSingleWaferCharts,35);
     }
+    // 完整負載圖保留偵測時間原點及索引，確保異常標記對位。
+    function s1FullChartPoints(steps){
+      const ep=s1EpisodePoints(steps),valid=(steps||[]).filter(p=>Number.isFinite(p.relativeSec)&&Number.isFinite(p.s1Loading));
+      const origin=ep.length?ep[0].raw.relativeSec:(valid[0]?.relativeSec||0),indices=new Map(ep.map(p=>[p.raw,p.index]));
+      return valid.map(p=>({raw:p,index:indices.has(p)?indices.get(p):-1,x:p.relativeSec-origin,y:p.s1Loading})).sort((a,b)=>a.x-b.x);
+    }
     function s1PeakZoomOptions(series,item){
       const pts=series.flatMap(s=>s.points||[]).filter(p=>Number.isFinite(p.x)&&Number.isFinite(p.y));
       if(!pts.length)return{xMin:0};
-      const fullMin=0,fullMax=Math.max(...pts.map(p=>p.x),1),zoom=Math.max(1,Math.min(12,state.s1PeakCheck.zoom||1));
-      if(zoom<=1.0001)return{xMin:0};
+      const fullMin=Math.min(0,...pts.map(p=>p.x)),fullMax=Math.max(...pts.map(p=>p.x),1),zoom=Math.max(1,Math.min(12,state.s1PeakCheck.zoom||1));
+      if(zoom<=1.0001)return{xMin:fullMin};
       const seg=s1SlopeSegment(series,item),fullSpan=Math.max(1,fullMax-fullMin);
       let span=Math.max(5,fullSpan/zoom),center=Number.isFinite(item.sec)?item.sec:(fullMin+fullMax)/2;
       if(seg){
@@ -1631,8 +1637,8 @@
         const d=item.data||await parseS1PeakWaferFile(item.fileRef);
         item.data=d;
         if(token!==state.s1PeakCheck.chartToken)return;
-        const l=L(),slope=isS1SlopeHit(item),make=(g,color)=>s1EpisodePoints(d[`${g}Steps`]).map(p=>({x:p.x,y:p.y,index:p.index,marker:!slope&&item.g===g.toUpperCase()&&p.index===item.index,markerColor:"#d81e05",hoverLabel:`${g.toUpperCase()} S1`,hoverText:`${g.toUpperCase()} S1\n${procTimeAxisLabel()}: ${oneDecimal(p.x)}\n${l.loadingY}: ${oneDecimal(p.y)}`}));
-        const series=[{name:"G1 S1",legendName:"G1 S1",color:"g1",points:make("g1","g1")},{name:"G2 S1",legendName:"G2 S1",color:"g2",points:make("g2","g2")}];
+        const l=L(),slope=isS1SlopeHit(item),make=(g,color)=>s1FullChartPoints(d[`${g}Steps`]).map(p=>({x:p.x,y:p.y,index:p.index,marker:!slope&&item.g===g.toUpperCase()&&p.index===item.index,markerColor:"#d81e05",hoverLabel:`${g.toUpperCase()} S1`,hoverText:`${g.toUpperCase()} S1\n${procTimeAxisLabel()}: ${oneDecimal(p.x)}\n${l.loadingY}: ${oneDecimal(p.y)}`}));
+        const g=item.g.toLowerCase(),series=[{name:`${item.g} S1`,legendName:`${item.g} S1`,color:"#32a852",points:make(g)}];
         const zoom=state.s1PeakCheck.zoom||1,zoomText=zoom>1.0001?`  x${fmt(zoom,1)}`:"";
         $("lblS1PeakChart").textContent=title+zoomText;
         const chartOptions=s1PeakZoomOptions(series,item);
@@ -1662,9 +1668,9 @@
     async function s1PeakPptChart(item){
       const d=item.data||await parseS1PeakWaferFile(item.fileRef),l=L();
       return pptChart(c=>{
-        const slope=isS1SlopeHit(item),make=g=>s1EpisodePoints(d[`${g}Steps`]).map(p=>({x:p.x,y:p.y,index:p.index,marker:!slope&&item.g===g.toUpperCase()&&p.index===item.index,markerColor:"#d81e05",hoverLabel:`${g.toUpperCase()} S1`,hoverText:""}));
-        const series=[{name:"G1 S1",legendName:"G1 S1",color:"g1",points:make("g1")},{name:"G2 S1",legendName:"G2 S1",color:"g2",points:make("g2")}];
-        drawLines(c,series,procTimeAxisLabel(),l.loadingY,`S1 peak檢查  W${String(item.wafer).padStart(4,"0")}  ${item.g}  Peak=${fmt(item.peak,1)}  sec=${fmt(item.sec,1)}`,{xMin:0,annotations:s1SlopeAnnotations(series,item)});
+        const slope=isS1SlopeHit(item),make=g=>s1FullChartPoints(d[`${g}Steps`]).map(p=>({x:p.x,y:p.y,index:p.index,marker:!slope&&item.g===g.toUpperCase()&&p.index===item.index,markerColor:"#d81e05",hoverLabel:`${g.toUpperCase()} S1`,hoverText:""}));
+        const g=item.g.toLowerCase(),series=[{name:`${item.g} S1`,legendName:`${item.g} S1`,color:"#32a852",points:make(g)}];
+        drawLines(c,series,procTimeAxisLabel(),l.loadingY,`S1 peak檢查  W${String(item.wafer).padStart(4,"0")}  ${item.g}  Peak=${fmt(item.peak,1)}  sec=${fmt(item.sec,1)}`,{xMin:Math.min(0,...series[0].points.map(p=>p.x)),annotations:s1SlopeAnnotations(series,item)});
       });
     }
     async function buildS1PeakPptSlides(items){
@@ -2418,7 +2424,7 @@
     $("btnS1ZoomReset").addEventListener("click", ()=>setS1PeakZoom("reset"));
     ["txtS1DeltaG1","txtS1DeltaG2"].forEach(id=>$(id).addEventListener("change", saveS1PeakDelta));
     ["txtS1RapidSlopeG1","txtS1RapidSlopeG2","txtS1SlopeG1","txtS1SlopeG2"].forEach(id=>$(id).addEventListener("change", saveS1Slope));
-    ["chkS1ShowG1","chkS1ShowG2","chkS1ShowDelta","chkS1ShowRapid","chkS1ShowSlow","chkS1ShowChuck1","chkS1ShowChuck2","chkS1ShowChuck3"].forEach(id=>$(id).addEventListener("change", applyS1DisplayFilter));
+    ["chkS1ShowG1","chkS1ShowG2","chkS1ShowDelta","chkS1ShowRapid","chkS1ShowSlow","chkS1ShowChuck1","chkS1ShowChuck2","chkS1ShowChuck3","chkS1NgOnly"].forEach(id=>$(id).addEventListener("change", applyS1DisplayFilter));
     $("btnAbout").addEventListener("click", ()=>alert(releaseNotes()));
     $("folderInput").addEventListener("change", async e=>{try{setDisplayedPath("Loading...",false);await loadBatchFromFiles([...e.target.files]);}catch(err){alert(err.message||String(err));setDisplayedPath(tr[state.lang].notLoaded,false);}});
     $("singleFileInput").addEventListener("change", e=>loadSingleWafer(e.target.files[0]).catch(err=>alert(err.message||String(err))));
