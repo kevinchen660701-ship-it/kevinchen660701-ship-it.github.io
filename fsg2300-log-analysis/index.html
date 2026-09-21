@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
   <!-- auth-gateway:start -->
@@ -416,7 +416,7 @@
       <button id="btnLangEn" class="langbtn">EN</button>
       <button id="btnAbout">?</button>
       <div id="lblPath">尚未載入</div>
-      <div id="lblVersion">v1.8.33</div>
+      <div id="lblVersion">v1.8.34</div>
       <input id="folderInput" class="hidden" type="file" webkitdirectory directory multiple>
       <input id="singleFileInput" class="hidden" type="file" accept=".csv,.ini">
       <input id="s1PeakInput" class="hidden" type="file" webkitdirectory directory multiple>
@@ -544,7 +544,7 @@
   </div>
 
   <script>
-    const state = { files: new Map(), info: null, records: [], waferCache: new Map(), folderName: "", seqLoaded: false, lang: "tw", singleData: null, s1PeakCheck: { items: [], selected: -1, folderName: "", totalWafers: 0, chartToken: 0, zoom: 1 } };
+    const state = { files: new Map(), info: null, records: [], waferCache: new Map(), folderName: "", seqLoaded: false, lang: "tw", singleData: null, singleFullS1Loading: false, s1PeakCheck: { items: [], selected: -1, folderName: "", totalWafers: 0, chartToken: 0, zoom: 1 } };
     let s1PeakPendingFiles = [];
     let s1PeakFolderChoices = [];
     const s1PeakRelativePaths = new WeakMap();
@@ -854,10 +854,10 @@
     function renderThickness(){const l=L(),s=[];if($("chkThickG1").checked)s.push({name:l.g1Thick,color:"#004c99",points:okSeries("G1","g1LastWaferMin")});if($("chkThickG2").checked)s.push({name:l.g2Thick,color:"#d81e05",points:okSeries("G2","g2LastWaferMin")});drawLines($("chtThickness"),s,l.wafer,l.thickY,l.thicknessTitle);}
     function renderSeq(){if(!state.seqLoaded)return;const l=L();drawLines($("chtLoadingSeqG1"),sequenceSeries("g1",20),"sec",l.loadingY,`G1 ${l.g1Rough.replace(/^G1\s*/,"")} ${l.seqTitle}`);drawLines($("chtLoadingSeqG2"),sequenceSeries("g2",20),"sec",l.loadingY,`G2 ${l.g2Fine.replace(/^G2\s*/,"")} ${l.seqTitle}`);}
     function renderPar(){if(!state.seqLoaded)return;const l=L(),selected=[...document.querySelectorAll(".chkPar")].filter(x=>x.checked).map(x=>int(x.value));drawLines($("chtLoadingParG1"),parallelSeries("g1",selected),"sec",l.loadingY,`G1 ${l.g1Rough.replace(/^G1\s*/,"")} ${l.parTitle}`);drawLines($("chtLoadingParG2"),parallelSeries("g2",selected),"sec",l.loadingY,`G2 ${l.g2Fine.replace(/^G2\s*/,"")} ${l.parTitle}`);}
-    async function loadSingleWafer(file){if(!file)return;const source=s1FileRelativePath(file)||file.name;const data=await parseWafer(file);data.fullPath=data.fullPath||source;state.singleData=data;setDisplayedPath(source,true);activateTab("single");setTimeout(renderSingleWaferCharts,35);}
+    async function loadSingleWafer(file){if(!file)return;const source=s1FileRelativePath(file)||file.name;const data=await parseWafer(file);data.fullPath=data.fullPath||source;state.singleData=data;state.singleFullS1Loading=false;setDisplayedPath(source,true);activateTab("single");setTimeout(renderSingleWaferCharts,35);}
     function activeSingleId(){return $("singleG2")?.classList?.contains?.("active")?"singleG2":"singleG1";}
     function selectSingleSubtab(id){document.querySelectorAll(".subtab").forEach(b=>b.classList.toggle("active",b.dataset.sub===id));document.querySelectorAll(".subpage").forEach(p=>p.classList.toggle("active",p.id===id));}
-    function renderSingleWaferCharts(){const data=state.singleData;if(!data)return;const l=L(),g2=activeSingleId()==="singleG2";drawSingleChart($(g2?"chtSingleG2":"chtSingleG1"),g2?data.g2Steps:data.g1Steps,`${g2?l.g2Fine:l.g1Rough}  Chuck#${data.chuck||"-"}  ${l.income}=${fmt(g2?data.g2Income:data.g1Income,1)}um  ${l.result}:${(g2?data.g2Result:data.g1Result)||"-"}`);}
+    function renderSingleWaferCharts(){const data=state.singleData;if(!data)return;const l=L(),g2=activeSingleId()==="singleG2";drawSingleChart($(g2?"chtSingleG2":"chtSingleG1"),g2?data.g2Steps:data.g1Steps,`${g2?l.g2Fine:l.g1Rough}  Chuck#${data.chuck||"-"}  ${l.income}=${fmt(g2?data.g2Income:data.g1Income,1)}um  ${l.result}:${(g2?data.g2Result:data.g1Result)||"-"}`,state.singleFullS1Loading);}
     async function loadWaferFromBatch(){const l=L();if(!state.records.length)return alert(l.alertBatch);const n=int($("nudWaferNo").value),f=findWaferFile(n);if(!f)return alert(`${l.alertWafer} W${String(n).padStart(4,"0")}`);await loadSingleWafer(f);}
     function legendRows(ctx,series,x,maxW){ctx.font="12px Consolas, monospace";let cx=x,rows=1;for(const s of series){const w=Math.min(230,ctx.measureText(roughFineName(s.name)).width+42);if(cx+w>maxW&&rows<2){cx=x;rows++;}cx+=w+14;}return rows;}
     function drawLegend(ctx,series,x,y,maxW){ctx.font="12px Consolas, monospace";ctx.textBaseline="alphabetic";let cx=x,cy=y,rows=1;for(const s of series){const label=roughFineName(s.name),tw=ctx.measureText(label).width,w=Math.min(230,tw+42);if(cx+w>maxW&&rows<2){cx=x;cy+=24;rows++;}if(cx+w>maxW&&rows>=2){ctx.fillStyle="#fff";ctx.fillRect(cx-6,cy-18,78,22);ctx.strokeStyle="#4b5563";ctx.strokeRect(cx-6,cy-18,78,22);ctx.fillStyle="#1f2937";ctx.fillText(`+${series.length-series.indexOf(s)} more`,cx,cy-3);break;}const c=colorMap[s.color]||s.color||"#0072bd";ctx.fillStyle="#fff";ctx.fillRect(cx-6,cy-18,w,22);ctx.strokeStyle="#7c8795";ctx.lineWidth=1;ctx.strokeRect(cx-6,cy-18,w,22);ctx.fillStyle=c;ctx.fillRect(cx,cy-12,18,8);ctx.fillStyle=c;ctx.fillText(label,cx+26,cy-3);cx+=w+14;}return y+rows*24;}
@@ -885,7 +885,7 @@
     function singleChartRows(steps){return(steps||[]).filter(r=>Number.isFinite(r.relativeSec)&&r.zabs>0&&r.zabs<=1000&&r.waferOnline>300&&r.zfeedrate<1);}
     function axisRange(vals,padRate,minPad){vals=vals.filter(Number.isFinite);if(!vals.length)return{min:0,max:1};let mn=min(vals),mx=max(vals);if(mn===mx){mn-=minPad;mx+=minPad;}const pad=Math.max((mx-mn)*padRate,minPad);return{min:Math.floor(mn-pad),max:Math.ceil(mx+pad)};}
     function axisTicks(minV,maxV,count=6){const out=[];for(let i=0;i<=count;i++)out.push(maxV-i*(maxV-minV)/count);return out;}
-    function drawSingleChart(canvas,steps,title){const {ctx,w,h}=setupCanvas(canvas),l=L(),rows=singleChartRows(steps),compact=h<380,series=[{name:"Zabs(um)",color:"#d81e05"},{name:"Thickness(um)",color:"#0072bd"},{name:"S1Loading(%)",color:"#2fa84f"}],gridColor="#bcc7d3",axisColor="#202936";ctx.clearRect(0,0,w,h);ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);ctx.font="14px Microsoft JhengHei UI, Arial";ctx.fillStyle="#1f2937";ctx.textAlign="center";ctx.fillText(title||"",w/2,compact?18:22);const legendX=96,legendY=compact?44:60,rowsLegend=legendRows(ctx,series,legendX,w-48),pad={l:76,r:76,t:Math.max(compact?78:110,legendY+rowsLegend*24+(compact?4:12)),b:compact?46:62},pw=Math.max(50,w-pad.l-pad.r),ph=Math.max(50,h-pad.t-pad.b);ctx.fillStyle="#374151";ctx.font="12px Consolas, monospace";ctx.save();ctx.translate(18,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.fillText(l.thickY,0,0);ctx.restore();ctx.save();ctx.translate(w-18,pad.t+ph/2);ctx.rotate(Math.PI/2);ctx.textAlign="center";ctx.fillText(l.loadingY,0,0);ctx.restore();ctx.textAlign="center";ctx.fillText(procTimeAxisLabel(),pad.l+pw/2,h-(compact?8:14));if(!rows.length){setChartTooltip(canvas,[]);ctx.fillStyle="#606a76";ctx.fillText(l.noData,pad.l+pw/2,pad.t+ph/2);drawLegend(ctx,series,legendX,legendY,w-48);ctx.textAlign="left";return;}const xMin=min(rows.map(r=>r.relativeSec)),xMax=max(rows.map(r=>r.relativeSec)),left=axisRange(rows.flatMap(r=>[r.zabs,r.waferOnline]),.1,2),right=axisRange(rows.map(r=>r.s1Loading),.15,1),sx=x=>pad.l+((x-xMin)/(xMax-xMin||1))*pw,syL=y=>pad.t+ph-((y-left.min)/(left.max-left.min||1))*ph,syR=y=>pad.t+ph-((y-right.min)/(right.max-right.min||1))*ph,leftTicks=axisTicks(left.min,left.max,6),rightTicks=axisTicks(right.min,right.max,6);ctx.strokeStyle=gridColor;ctx.lineWidth=1;for(const value of leftTicks){const yy=syL(value);ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();}const xStep=Math.max(10,Math.ceil((xMax-xMin)/6/10)*10),xTicks=[];for(let v=Math.ceil(xMin/xStep)*xStep;v<=xMax+.0001;v+=xStep)xTicks.push(v);if(!xTicks.length)xTicks.push(xMin,xMax);for(const value of xTicks){const xx=sx(value);ctx.beginPath();ctx.moveTo(xx,pad.t);ctx.lineTo(xx,h-pad.b);ctx.stroke();}ctx.strokeStyle=axisColor;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,h-pad.b);ctx.lineTo(w-pad.r,h-pad.b);ctx.moveTo(w-pad.r,pad.t);ctx.lineTo(w-pad.r,h-pad.b);ctx.stroke();ctx.lineWidth=1;ctx.font="12px Consolas, monospace";ctx.fillStyle="#374151";ctx.textAlign="right";for(const value of leftTicks)ctx.fillText(oneDecimal(value),pad.l-8,syL(value)+4);ctx.textAlign="left";for(const value of rightTicks)ctx.fillText(oneDecimal(value),w-pad.r+8,syR(value)+4);ctx.textAlign="center";for(const value of xTicks)ctx.fillText(oneDecimal(value),sx(value),h-(compact?24:36));const hoverItems=[],draw=(name,color,getY,sy,yAxisLabel)=>{ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();rows.forEach((r,i)=>{const yv=getY(r),x=sx(r.relativeSec),y=sy(yv);hoverItems.push({px:x,py:y,label:name,x:r.relativeSec,y:yv,xLabel:procTimeAxisLabel(),yLabel:yAxisLabel,color});i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();};ctx.save();ctx.beginPath();ctx.rect(pad.l,pad.t,pw,ph);ctx.clip();draw("Zabs(um)","#d81e05",r=>r.zabs,syL,l.thickY);draw("Thickness(um)","#0072bd",r=>r.waferOnline,syL,l.thickY);draw("S1Loading(%)","#2fa84f",r=>r.s1Loading,syR,l.loadingY);ctx.restore();drawLegend(ctx,series,legendX,legendY,w-48);setChartTooltip(canvas,hoverItems);ctx.textAlign="left";}
+    function drawSingleChart(canvas,steps,title,fullS1Loading=false){const {ctx,w,h}=setupCanvas(canvas),l=L(),rows=singleChartRows(steps),loadRows=fullS1Loading?(steps||[]).filter(r=>Number.isFinite(r.relativeSec)&&Number.isFinite(r.s1Loading)).slice().sort((a,b)=>a.relativeSec-b.relativeSec):rows,axisRows=fullS1Loading?rows.concat(loadRows):rows,compact=h<380,series=[{name:"Zabs(um)",color:"#d81e05"},{name:"Thickness(um)",color:"#0072bd"},{name:"S1Loading(%)",color:"#2fa84f"}],gridColor="#bcc7d3",axisColor="#202936";ctx.clearRect(0,0,w,h);ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);ctx.font="14px Microsoft JhengHei UI, Arial";ctx.fillStyle="#1f2937";ctx.textAlign="center";ctx.fillText(title||"",w/2,compact?18:22);const legendX=96,legendY=compact?44:60,rowsLegend=legendRows(ctx,series,legendX,w-48),pad={l:76,r:76,t:Math.max(compact?78:110,legendY+rowsLegend*24+(compact?4:12)),b:compact?46:62},pw=Math.max(50,w-pad.l-pad.r),ph=Math.max(50,h-pad.t-pad.b);ctx.fillStyle="#374151";ctx.font="12px Consolas, monospace";ctx.save();ctx.translate(18,pad.t+ph/2);ctx.rotate(-Math.PI/2);ctx.textAlign="center";ctx.fillText(l.thickY,0,0);ctx.restore();ctx.save();ctx.translate(w-18,pad.t+ph/2);ctx.rotate(Math.PI/2);ctx.textAlign="center";ctx.fillText(l.loadingY,0,0);ctx.restore();ctx.textAlign="center";ctx.fillText(procTimeAxisLabel(),pad.l+pw/2,h-(compact?8:14));if(!axisRows.length){setChartTooltip(canvas,[]);ctx.fillStyle="#606a76";ctx.fillText(l.noData,pad.l+pw/2,pad.t+ph/2);drawLegend(ctx,series,legendX,legendY,w-48);ctx.textAlign="left";return;}const xMin=min(axisRows.map(r=>r.relativeSec)),xMax=max(axisRows.map(r=>r.relativeSec)),left=axisRange(rows.length?rows.flatMap(r=>[r.zabs,r.waferOnline]):[0,1],.1,2),right=axisRange(loadRows.length?loadRows.map(r=>r.s1Loading):[0,1],.15,1),sx=x=>pad.l+((x-xMin)/(xMax-xMin||1))*pw,syL=y=>pad.t+ph-((y-left.min)/(left.max-left.min||1))*ph,syR=y=>pad.t+ph-((y-right.min)/(right.max-right.min||1))*ph,leftTicks=axisTicks(left.min,left.max,6),rightTicks=axisTicks(right.min,right.max,6);ctx.strokeStyle=gridColor;ctx.lineWidth=1;for(const value of leftTicks){const yy=syL(value);ctx.beginPath();ctx.moveTo(pad.l,yy);ctx.lineTo(w-pad.r,yy);ctx.stroke();}const xStep=Math.max(10,Math.ceil((xMax-xMin)/6/10)*10),xTicks=[];for(let v=Math.ceil(xMin/xStep)*xStep;v<=xMax+.0001;v+=xStep)xTicks.push(v);if(!xTicks.length)xTicks.push(xMin,xMax);for(const value of xTicks){const xx=sx(value);ctx.beginPath();ctx.moveTo(xx,pad.t);ctx.lineTo(xx,h-pad.b);ctx.stroke();}ctx.strokeStyle=axisColor;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(pad.l,pad.t);ctx.lineTo(pad.l,h-pad.b);ctx.lineTo(w-pad.r,h-pad.b);ctx.moveTo(w-pad.r,pad.t);ctx.lineTo(w-pad.r,h-pad.b);ctx.stroke();ctx.lineWidth=1;ctx.font="12px Consolas, monospace";ctx.fillStyle="#374151";ctx.textAlign="right";for(const value of leftTicks)ctx.fillText(oneDecimal(value),pad.l-8,syL(value)+4);ctx.textAlign="left";for(const value of rightTicks)ctx.fillText(oneDecimal(value),w-pad.r+8,syR(value)+4);ctx.textAlign="center";for(const value of xTicks)ctx.fillText(oneDecimal(value),sx(value),h-(compact?24:36));const hoverItems=[],draw=(name,color,getY,sy,yAxisLabel,sourceRows=rows)=>{ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();sourceRows.forEach((r,i)=>{const yv=getY(r),x=sx(r.relativeSec),y=sy(yv);hoverItems.push({px:x,py:y,label:name,x:r.relativeSec,y:yv,xLabel:procTimeAxisLabel(),yLabel:yAxisLabel,color});i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();};ctx.save();ctx.beginPath();ctx.rect(pad.l,pad.t,pw,ph);ctx.clip();draw("Zabs(um)","#d81e05",r=>r.zabs,syL,l.thickY);draw("Thickness(um)","#0072bd",r=>r.waferOnline,syL,l.thickY);draw("S1Loading(%)","#2fa84f",r=>r.s1Loading,syR,l.loadingY,loadRows);ctx.restore();drawLegend(ctx,series,legendX,legendY,w-48);setChartTooltip(canvas,hoverItems);ctx.textAlign="left";}
     function renderSeq(){if(!state.seqLoaded)return;const l=L();drawSeqLines($("chtLoadingSeqG1"),sequenceSeries("g1",20),l.loadingY,`G1 ${l.g1Rough.replace(/^G1\s*/,"")} ${l.seqTitle}`);drawSeqLines($("chtLoadingSeqG2"),sequenceSeries("g2",20),l.loadingY,`G2 ${l.g2Fine.replace(/^G2\s*/,"")} ${l.seqTitle}`);}
     function renderPar(){if(!state.seqLoaded)return;const l=L(),selected=[...document.querySelectorAll(".chkPar")].filter(x=>x.checked).map(x=>int(x.value));drawLines($("chtLoadingParG1"),parallelSeries("g1",selected),procTimeAxisLabel(),l.loadingY,`G1 ${l.g1Rough.replace(/^G1\s*/,"")} ${l.parTitle}`,{xMin:0});drawLines($("chtLoadingParG2"),parallelSeries("g2",selected),procTimeAxisLabel(),l.loadingY,`G2 ${l.g2Fine.replace(/^G2\s*/,"")} ${l.parTitle}`,{xMin:0});}
 
@@ -1584,6 +1584,7 @@
       const data=item.data||await parseS1PeakWaferFile(item.fileRef,state.s1PeakCheck.folderName);
       item.data=data;
       state.singleData=data;
+      state.singleFullS1Loading=true;
       const source=item.path||data.fullPath||s1FileRelativePath(item.fileRef)||item.fileName||"";
       setDisplayedPath(source,true);
       selectSingleSubtab(item.g==="G2"?"singleG2":"singleG1");
@@ -1748,6 +1749,7 @@
     function releaseNotes(){
       if(state.lang==="en")return [
         "FSG2300 Log Analysis Release Notes",
+        "v1.8.34 (2026-09-21): S1 Peak single-wafer view shows the full S1 trace; thickness filters and detection unchanged.",
         "",
         "v1.8.30",
         "- Improved path display: the top path area can show two lines and full paths are available in tooltips.",
@@ -1968,6 +1970,8 @@
       ].join("\n");
       if(state.lang==="cn")return [
         "FSG2300 Log Analysis Release 说明",
+        "v1.8.34 (2026-09-21)",
+        "- 从 S1 peak「显示」打开单片时，S1 负载完整显示；厚度筛选、一般单片与 Peak 检查不变。",
         "",
         "v1.8.30",
         "- 改善路径显示：上方路径区域可显示两行，滑鼠停留可查看完整路径提示。",
@@ -2188,6 +2192,8 @@
       ].join("\n");
       return [
         "FSG2300 Log Analysis Release 說明",
+        "v1.8.34 (2026-09-21)",
+        "- 從 S1 peak「顯示」開啟單片時，S1 負載完整顯示；厚度篩選、一般單片與 Peak 檢查不變。",
         "",
         "v1.8.30",
         "- 改善路徑顯示：上方路徑區域可顯示兩行，滑鼠停留可查看完整路徑提示。",
