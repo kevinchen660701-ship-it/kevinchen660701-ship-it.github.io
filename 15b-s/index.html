@@ -515,6 +515,18 @@
 
     .jig-vacuum svg { display: block; width: 100%; height: auto; }
 
+    .thickness-gauge {
+      position: absolute;
+      z-index: 7;
+      width: var(--gauge-size, 72px);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    .thickness-gauge svg { display: block; width: 100%; height: auto; }
+    .gauge-value { font-family: Consolas, monospace; font-variant-numeric: tabular-nums; }
+    .material-note { margin: 0 0 6px; text-align: center; color: var(--muted); font-size: 12px; }
+    .material-error { margin: 5px 0 0; font-size: 12px; color: #a22d25; }
+
     .slurry-distributor {
       position: absolute;
       z-index: 4;
@@ -909,6 +921,7 @@
 
         <section class="panel" aria-label="Material removal setup">
           <h2 style="text-align:center">Material Removal</h2>
+          <p class="material-note">晶圓厚度（µm） · Target ≤ Actual</p>
           <div class="material-grid">
             <div></div>
             <div class="head">Target</div>
@@ -916,24 +929,34 @@
             <div></div>
 
             <label for="mrTarget1">1</label>
-            <input id="mrTarget1" type="number" value="10" min="0" max="100" step="0.1">
-            <input id="mrActual1" type="number" value="0" min="0" max="100" step="0.1">
+            <input id="mrTarget1" aria-label="Jig 1 Target thickness" type="number" value="490" min="0" max="10000" step="0.1">
+            <input id="mrActual1" aria-label="Jig 1 Actual thickness" type="number" value="500" min="0" max="10000" step="0.1">
             <button type="button" data-zero="1">Zero</button>
 
             <label for="mrTarget2">2</label>
-            <input id="mrTarget2" type="number" value="10" min="0" max="100" step="0.1">
-            <input id="mrActual2" type="number" value="0" min="0" max="100" step="0.1">
+            <input id="mrTarget2" aria-label="Jig 2 Target thickness" type="number" value="490" min="0" max="10000" step="0.1">
+            <input id="mrActual2" aria-label="Jig 2 Actual thickness" type="number" value="500" min="0" max="10000" step="0.1">
             <button type="button" data-zero="2">Zero</button>
 
             <label for="mrTarget3">3</label>
-            <input id="mrTarget3" type="number" value="10" min="0" max="100" step="0.1">
-            <input id="mrActual3" type="number" value="0" min="0" max="100" step="0.1">
+            <input id="mrTarget3" aria-label="Jig 3 Target thickness" type="number" value="490" min="0" max="10000" step="0.1">
+            <input id="mrActual3" aria-label="Jig 3 Actual thickness" type="number" value="500" min="0" max="10000" step="0.1">
             <button type="button" data-zero="3">Zero</button>
+
+            <label for="mrTarget4">4</label>
+            <input id="mrTarget4" aria-label="Jig 4 Target thickness" type="number" value="490" min="0" max="10000" step="0.1">
+            <input id="mrActual4" aria-label="Jig 4 Actual thickness" type="number" value="500" min="0" max="10000" step="0.1">
+            <button type="button" data-zero="4">Zero</button>
           </div>
+          <p id="thicknessError" class="material-error" role="status"></p>
         </section>
 
         <section class="panel sim-panel" aria-label="Simulation output">
           <div class="polisher">
+            <div class="thickness-gauge" role="img" aria-label="Jig 1 wafer thickness"><svg viewBox="0 0 80 110" aria-hidden="true"><rect x="35" y="0" width="10" height="12" rx="2" fill="#78909e" stroke="#223947"/><path d="M 35 72 V 91 H 45 V 72" fill="#a6bbc6" stroke="#304e60"/><path d="M 38 91 V 102 Q 40 106 42 102 V 91" fill="#d3e2e9" stroke="#304e60"/><circle cx="40" cy="42" r="34" fill="#263e4e" stroke="#a1b8c4" stroke-width="2"/><circle cx="40" cy="42" r="30" fill="#354e5e" stroke="#182e3b"/><text x="40" y="25" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="9" font-weight="700" text-anchor="middle">JIG 1</text><rect x="10" y="31" width="60" height="23" rx="3" fill="#152b30"/><rect x="13" y="34" width="54" height="17" rx="1" fill="#c7d8c7"/><text class="gauge-value" x="40" y="47" fill="#203c37" font-size="12.5" font-weight="700" text-anchor="middle">500.0</text><text x="40" y="62" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="8" text-anchor="middle">µm</text><circle cx="27" cy="68" r="3" fill="#162f3e"/><circle cx="40" cy="68" r="3" fill="#8aa7bb"/><circle cx="53" cy="68" r="3" fill="#65bfae"/></svg></div>
+            <div class="thickness-gauge" role="img" aria-label="Jig 2 wafer thickness"><svg viewBox="0 0 80 110" aria-hidden="true"><rect x="35" y="0" width="10" height="12" rx="2" fill="#78909e" stroke="#223947"/><path d="M 35 72 V 91 H 45 V 72" fill="#a6bbc6" stroke="#304e60"/><path d="M 38 91 V 102 Q 40 106 42 102 V 91" fill="#d3e2e9" stroke="#304e60"/><circle cx="40" cy="42" r="34" fill="#263e4e" stroke="#a1b8c4" stroke-width="2"/><circle cx="40" cy="42" r="30" fill="#354e5e" stroke="#182e3b"/><text x="40" y="25" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="9" font-weight="700" text-anchor="middle">JIG 2</text><rect x="10" y="31" width="60" height="23" rx="3" fill="#152b30"/><rect x="13" y="34" width="54" height="17" rx="1" fill="#c7d8c7"/><text class="gauge-value" x="40" y="47" fill="#203c37" font-size="12.5" font-weight="700" text-anchor="middle">500.0</text><text x="40" y="62" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="8" text-anchor="middle">µm</text><circle cx="27" cy="68" r="3" fill="#162f3e"/><circle cx="40" cy="68" r="3" fill="#8aa7bb"/><circle cx="53" cy="68" r="3" fill="#65bfae"/></svg></div>
+            <div class="thickness-gauge" role="img" aria-label="Jig 3 wafer thickness"><svg viewBox="0 0 80 110" aria-hidden="true"><rect x="35" y="0" width="10" height="12" rx="2" fill="#78909e" stroke="#223947"/><path d="M 35 72 V 91 H 45 V 72" fill="#a6bbc6" stroke="#304e60"/><path d="M 38 91 V 102 Q 40 106 42 102 V 91" fill="#d3e2e9" stroke="#304e60"/><circle cx="40" cy="42" r="34" fill="#263e4e" stroke="#a1b8c4" stroke-width="2"/><circle cx="40" cy="42" r="30" fill="#354e5e" stroke="#182e3b"/><text x="40" y="25" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="9" font-weight="700" text-anchor="middle">JIG 3</text><rect x="10" y="31" width="60" height="23" rx="3" fill="#152b30"/><rect x="13" y="34" width="54" height="17" rx="1" fill="#c7d8c7"/><text class="gauge-value" x="40" y="47" fill="#203c37" font-size="12.5" font-weight="700" text-anchor="middle">500.0</text><text x="40" y="62" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="8" text-anchor="middle">µm</text><circle cx="27" cy="68" r="3" fill="#162f3e"/><circle cx="40" cy="68" r="3" fill="#8aa7bb"/><circle cx="53" cy="68" r="3" fill="#65bfae"/></svg></div>
+            <div class="thickness-gauge" role="img" aria-label="Jig 4 wafer thickness"><svg viewBox="0 0 80 110" aria-hidden="true"><rect x="35" y="0" width="10" height="12" rx="2" fill="#78909e" stroke="#223947"/><path d="M 35 72 V 91 H 45 V 72" fill="#a6bbc6" stroke="#304e60"/><path d="M 38 91 V 102 Q 40 106 42 102 V 91" fill="#d3e2e9" stroke="#304e60"/><circle cx="40" cy="42" r="34" fill="#263e4e" stroke="#a1b8c4" stroke-width="2"/><circle cx="40" cy="42" r="30" fill="#354e5e" stroke="#182e3b"/><text x="40" y="25" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="9" font-weight="700" text-anchor="middle">JIG 4</text><rect x="10" y="31" width="60" height="23" rx="3" fill="#152b30"/><rect x="13" y="34" width="54" height="17" rx="1" fill="#c7d8c7"/><text class="gauge-value" x="40" y="47" fill="#203c37" font-size="12.5" font-weight="700" text-anchor="middle">500.0</text><text x="40" y="62" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="8" text-anchor="middle">µm</text><circle cx="27" cy="68" r="3" fill="#162f3e"/><circle cx="40" cy="68" r="3" fill="#8aa7bb"/><circle cx="53" cy="68" r="3" fill="#65bfae"/></svg></div>
             <svg id="slurryDistributor" class="slurry-distributor" data-flow="off" viewBox="-200 -200 400 400" role="img" aria-label="Central slurry distributor with four feeds">
               <g class="slurry-branch" transform="rotate(-90)" aria-label="Slurry to Jig 1"><path class="slurry-pipe" d="M 12 0 H 78"/><path class="slurry-pipe-highlight" d="M 24 -3 H 72"/><path d="M 74 -7 H 81 V 7 H 74 Z" fill="#3b5361" stroke="#8ba3af" stroke-width="1"/><path class="slurry-flow" d="M 10 0 H 99"/><ellipse class="slurry-wet" cx="100" cy="0" rx="5" ry="3"/></g>
               <g class="slurry-branch" transform="rotate(180)" aria-label="Slurry to Jig 2"><path class="slurry-pipe" d="M 12 0 H 78"/><path class="slurry-pipe-highlight" d="M 24 -3 H 72"/><path d="M 74 -7 H 81 V 7 H 74 Z" fill="#3b5361" stroke="#8ba3af" stroke-width="1"/><path class="slurry-flow" d="M 10 0 H 99"/><ellipse class="slurry-wet" cx="100" cy="0" rx="5" ry="3"/></g>
@@ -1116,7 +1139,7 @@
     const ids = [
       "plateRpm", "jigRpm", "swingSpeed", "colloidalFlow", "abrasive1Flow", "abrasive2Flow",
       "targetShapeValue", "targetShapeAuto", "actualShapeValue", "actualShapeAuto",
-      "mrTarget1", "mrActual1", "mrTarget2", "mrActual2", "mrTarget3", "mrActual3",
+      "mrTarget1", "mrActual1", "mrTarget2", "mrActual2", "mrTarget3", "mrActual3", "mrTarget4", "mrActual4",
       "shapeK", "removalK", "factorDeltaK", "factorMrK", "plateDiameterMm", "waferDiameterMm", "centerDiameterMm",
       "geometryBaseK", "geometryContactK", "geometrySweepK",
       "modeText", "timerText", "autoStopText", "progressBar",
@@ -1143,7 +1166,7 @@
     const savedInputIds = [
       "plateRpm", "swingSpeed", "colloidalFlow", "abrasive1Flow", "abrasive2Flow",
       "targetShapeValue", "actualShapeValue",
-      "mrTarget1", "mrActual1", "mrTarget2", "mrActual2", "mrTarget3", "mrActual3",
+      "mrTarget1", "mrActual1", "mrTarget2", "mrActual2", "mrTarget3", "mrActual3", "mrTarget4", "mrActual4",
       "shapeK", "removalK", "factorDeltaK", "factorMrK",
       "plateDiameterMm", "waferDiameterMm", "centerDiameterMm",
       "geometryBaseK", "geometryContactK", "geometrySweepK"
@@ -1158,7 +1181,7 @@
       swingPhase: 0,
       lastFrame: performance.now(),
       startShape: 0,
-      startRemoval: [0, 0, 0],
+      startRemoval: [0, 0, 0, 0],
       unitActive: {
         plate: false,
         jig: false,
@@ -1265,11 +1288,25 @@
     }
 
     function materialRows() {
-      return [
-        { target: num(el.mrTarget1), actual: num(el.mrActual1), input: el.mrActual1 },
-        { target: num(el.mrTarget2), actual: num(el.mrActual2), input: el.mrActual2 },
-        { target: num(el.mrTarget3), actual: num(el.mrActual3), input: el.mrActual3 }
-      ];
+      return [1, 2, 3, 4].map(index => ({
+        target: num(el["mrTarget" + index]), actual: num(el["mrActual" + index]),
+        input: el["mrActual" + index], targetInput: el["mrTarget" + index]
+      }));
+    }
+
+    function updateThicknessGauges() {
+      materialRows().forEach((row, index) => {
+        const gauge = document.querySelectorAll(".thickness-gauge")[index];
+        gauge.querySelector(".gauge-value").textContent = row.actual.toFixed(1);
+        gauge.setAttribute("aria-label", "Jig " + (index + 1) + " wafer thickness " + row.actual.toFixed(1) + " µm");
+      });
+    }
+
+    function thicknessValidation() {
+      const invalid = materialRows().findIndex(row => !row.input.validity.valid || !row.targetInput.validity.valid || row.input.value === "" || row.targetInput.value === "" || row.target > row.actual);
+      const message = invalid < 0 ? "" : "Jig " + (invalid + 1) + "：請輸入有效厚度，Target 必須小於或等於 Actual。";
+      document.getElementById("thicknessError").textContent = message;
+      return invalid < 0;
     }
 
     function calculate() {
@@ -1279,7 +1316,7 @@
       const absDelta = Math.abs(delta);
       const rows = materialRows();
       const targetRemovalAvg = rows.reduce((sum, row) => sum + row.target, 0) / rows.length;
-      const removalGapAvg = rows.reduce((sum, row) => sum + Math.max(0, row.target - row.actual), 0) / rows.length;
+      const removalGapAvg = rows.reduce((sum, row) => sum + Math.max(0, row.actual - row.target), 0) / rows.length;
       const abrasiveAvg = (num(el.abrasive1Flow) + num(el.abrasive2Flow)) / 2;
       const slurry = num(el.colloidalFlow);
       const shapeK = Math.max(0.1, num(el.shapeK, 3));
@@ -1325,7 +1362,8 @@
       const shapeRate = absDelta < 0.15 ? 0 : Math.max(0.15, shapeK * differential * (0.75 + removalBoost * 0.45) * geometryGain);
       const removalRate = Math.max(0.12, removalK * flowFactor * motionFactor * contactLoadFactor);
       const shapeTime = absDelta < 0.15 ? 0 : absDelta / shapeRate;
-      const removalTime = removalGapAvg / removalRate;
+      const removalGapMax = Math.max(...rows.map(row => Math.max(0, row.actual - row.target)));
+      const removalTime = removalGapMax / removalRate;
       const estimatedMinutes = clamp(Math.max(shapeTime, removalTime, 0.25), 0.25, 90);
 
       return {
@@ -1359,6 +1397,7 @@
         motionFactor,
         contactLoadFactor,
         removalGapAvg,
+        removalGapMax,
         removalBoost,
         shapeRate,
         removalRate,
@@ -1377,7 +1416,7 @@
       const absDelta = calc.absDelta.toFixed(1);
       const diff = calc.differential.toFixed(3);
       const removalBoost = calc.removalBoost.toFixed(2);
-      const removalGap = calc.removalGapAvg.toFixed(1);
+      const removalGap = calc.removalGapMax.toFixed(1);
       const shapeK = num(el.shapeK, 3).toFixed(1);
       const removalK = num(el.removalK, 1).toFixed(1);
       const factorDeltaK = calc.factorDeltaK.toFixed(2);
@@ -1410,7 +1449,7 @@
         <div>shapeTime = |Delta| / shapeRate = ${absDelta} / ${calc.shapeRate.toFixed(2)} = ${calc.shapeTime.toFixed(1)} min</div>
         <div>removalRate = max(0.12, Removal k x Flow factor x Motion factor x Contact load factor)</div>
         <div>removalRate = max(0.12, ${removalK} x ((${slurry}+${abrasiveAvg})/45) x (0.75 + (${plate}+${jig})/160) x ${contactLoadFactor}) = ${calc.removalRate.toFixed(2)} um/min</div>
-        <div>removalTime = MR gap / removalRate = ${removalGap} / ${calc.removalRate.toFixed(2)} = ${calc.removalTime.toFixed(1)} min</div>
+        <div>removalTime = max(Actual - Target) / removalRate = ${removalGap} / ${calc.removalRate.toFixed(2)} = ${calc.removalTime.toFixed(1)} min</div>
         <div>Auto-Stop = max(shapeTime, removalTime, 0.25) = ${calc.estimatedMinutes.toFixed(1)} min</div>
       `;
     }
@@ -1428,6 +1467,8 @@
     function renderCalc() {
       const calc = calculate();
       state.calc = calc;
+      updateThicknessGauges();
+      if (!state.running) thicknessValidation();
       el.jigRpm.value = calc.jig.toFixed(0);
       el.deltaText.textContent = formatSigned(calc.delta);
       el.ratioText.textContent = `${calc.ratio.toFixed(2)} : 1`;
@@ -1466,10 +1507,13 @@
       el.modeText.textContent = isRunning ? "Manual Mode - Running" : "Manual Mode - Ready";
       el.startBtn.disabled = isRunning;
       el.stopBtn.disabled = !isRunning;
+      materialRows().forEach(row => { row.input.disabled = isRunning; row.targetInput.disabled = isRunning; });
+      zeroButtons.forEach(button => { button.disabled = isRunning; });
       setAllUnits(isRunning);
     }
 
     function startProcess() {
+      if (!thicknessValidation()) return;
       saveInputs();
       renderCalc();
       state.startShape = signedShape(el.actualShapeValue);
@@ -1501,6 +1545,15 @@
       if (layoutKey === jigLayoutKey) return;
       jigLayoutKey = layoutKey;
       // Land between the Jig stations; keep the pipe bodies outside the plate.
+      const gaugeAngles = [-78, 188, 8, 102];
+      const board = document.querySelector(".polisher");
+      document.querySelectorAll(".thickness-gauge").forEach((gauge, index) => {
+        const angle = gaugeAngles[index] * Math.PI / 180;
+        const size = Math.min(72, plateRadius * .36);
+        gauge.style.setProperty("--gauge-size", size + "px");
+        gauge.style.left = clamp(el.plateDisk.offsetLeft + Math.cos(angle) * 1.3 * plateRadius, size / 2 + 4, board.clientWidth - size / 2 - 4) + "px";
+        gauge.style.top = clamp(el.plateDisk.offsetTop + Math.sin(angle) * 1.3 * plateRadius, size * .6875 + 4, board.clientHeight - size * .6875 - 4) + "px";
+      });
       const vacuumAngles = [255, 165, 345, 75];
       document.querySelectorAll(".jig-vacuum").forEach((icon, index) => {
         const angle = vacuumAngles[index] * Math.PI / 180;
