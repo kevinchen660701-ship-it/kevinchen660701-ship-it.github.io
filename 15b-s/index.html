@@ -754,12 +754,11 @@
       flex-wrap: wrap;
     }
 
-    #agitate1,
-    #agitate2 {
-      min-width: 86px;
-      margin-left: 78px;
-      min-height: 32px;
-      padding: 4px 8px;
+    .agitator-speeds { gap: 24px; }
+    .agitator-choice { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
+    .agitator-lamp:not(.is-active) {
+      border-color: #73828c;
+      background: radial-gradient(circle at 32% 28%, #b0bdc6, #70838f 55%, #526773);
     }
 
     @media (max-width: 1120px) {
@@ -861,22 +860,12 @@
 
         <div class="control-block">
           <h2>Agitator</h2>
-          <div class="field-row">
-            <input id="abrasive1Flow" type="number" value="10" min="0" max="100">
-            <span class="unit">ml/min</span>
-            <button type="button" class="lamp" id="abrasive1Lamp" aria-label="Agitator manual start" aria-pressed="false"></button>
-            <button type="button" id="agitate1">Agitate</button>
+          <div class="field-row agitator-speeds" role="group" aria-label="Agitator speed">
+            <span class="agitator-choice"><span>H</span><button type="button" class="lamp agitator-lamp" id="agitatorHigh" aria-label="Agitator H" aria-pressed="false"></button></span>
+            <span class="agitator-choice"><span>L</span><button type="button" class="lamp agitator-lamp" id="agitatorLow" aria-label="Agitator L" aria-pressed="false"></button></span>
           </div>
-        </div>
-
-        <div class="control-block" hidden>
-          <h2>Abrasive 2</h2>
-          <div class="field-row">
-            <input id="abrasive2Flow" type="number" value="10" min="0" max="100">
-            <span class="unit">ml/min</span>
-            <button type="button" class="lamp" id="abrasive2Lamp" aria-label="Abrasive 2 manual start" aria-pressed="false"></button>
-            <button type="button" id="agitate2">Agitate</button>
-          </div>
+          <input id="abrasive1Flow" type="hidden" value="10">
+          <input id="abrasive2Flow" type="hidden" value="10">
         </div>
       </section>
 
@@ -1141,7 +1130,7 @@
       "deltaText", "ratioText", "directionText", "rateText", "animSpeedText", "formulaText",
       "targetFill", "targetMarker", "actualFill", "actualMarker", "plateDisk",
       "startBtn", "stopBtn", "resetBtn", "plateLamp", "jigLamp", "slurryLamp",
-      "abrasive1Lamp", "abrasive2Lamp", "calibrationBtn", "calibrationDialog",
+      "agitatorHigh", "agitatorLow", "calibrationBtn", "calibrationDialog",
       "closeCalibrationBtn", "applyCalibrationBtn", "calibrationSummary", "factorSummary"
     ];
 
@@ -1169,6 +1158,8 @@
 
     const state = {
       running: false,
+      agitatorMode: "off",
+      agitatorPreferred: "L",
       totalSec: 0,
       remainingSec: 0,
       plateAngle: 0,
@@ -1180,9 +1171,7 @@
       unitActive: {
         plate: false,
         jig: false,
-        slurry: false,
-        abrasive1: false,
-        abrasive2: false
+        slurry: false
       },
       calc: null
     };
@@ -1190,9 +1179,7 @@
     const unitLamps = {
       plate: el.plateLamp,
       jig: el.jigLamp,
-      slurry: el.slurryLamp,
-      abrasive1: el.abrasive1Lamp,
-      abrasive2: el.abrasive2Lamp
+      slurry: el.slurryLamp
     };
 
     function clamp(value, min, max) {
@@ -1228,6 +1215,7 @@
       savedInputIds.forEach((id) => {
         payload[id] = el[id].value;
       });
+      payload.agitatorLevel = state.agitatorPreferred;
       localStorage.setItem(storageKey, JSON.stringify(payload));
     }
 
@@ -1237,6 +1225,7 @@
           localStorage.setItem(storageKey, localStorage.getItem(oldStorageKey));
         }
         const payload = JSON.parse(localStorage.getItem(storageKey) || "{}");
+        if (payload.agitatorLevel === "H" || payload.agitatorLevel === "L") state.agitatorPreferred = payload.agitatorLevel;
         savedInputIds.forEach((id) => {
           if (Object.prototype.hasOwnProperty.call(payload, id)) {
             el[id].value = payload[id];
@@ -1495,8 +1484,19 @@
       updateSlurryVisual();
     }
 
+    function setAgitatorMode(mode) {
+      state.agitatorMode = mode;
+      if (mode === "H" || mode === "L") state.agitatorPreferred = mode;
+      [[el.agitatorHigh, "H"], [el.agitatorLow, "L"]].forEach(([lamp, level]) => {
+        const active = mode === level;
+        lamp.classList.toggle("is-active", active);
+        lamp.setAttribute("aria-pressed", String(active));
+      });
+    }
+
     function setAllUnits(isActive) {
       Object.keys(unitLamps).forEach((unit) => setUnitActive(unit, isActive));
+      setAgitatorMode(isActive ? state.agitatorPreferred : "off");
     }
 
     function setRunning(isRunning) {
@@ -1703,11 +1703,11 @@
         setUnitActive(unit, !state.unitActive[unit]);
       });
     });
-    document.getElementById("agitate1").addEventListener("click", () => {
-      setUnitActive("abrasive1", !state.unitActive.abrasive1);
-    });
-    document.getElementById("agitate2").addEventListener("click", () => {
-      setUnitActive("abrasive2", !state.unitActive.abrasive2);
+    [[el.agitatorHigh, "H"], [el.agitatorLow, "L"]].forEach(([lamp, level]) => {
+      lamp.addEventListener("click", () => {
+        setAgitatorMode(state.agitatorMode === level ? "off" : level);
+        saveInputs();
+      });
     });
 
     restoreInputs();
