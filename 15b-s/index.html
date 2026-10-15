@@ -527,30 +527,34 @@
     .material-note { margin: 0 0 6px; text-align: center; color: var(--muted); font-size: 12px; }
     .material-error { margin: 5px 0 0; font-size: 12px; color: #a22d25; }
 
-    .slurry-distributor {
+    .fork-slurry {
       position: absolute;
       z-index: 4;
-      transform: translate(-50%, -50%) rotate(45deg);
-      pointer-events: none;
+      left: 50%;
+      top: 50%;
+      width: 245%;
+      height: 130%;
+      transform-origin: 71.428571% 50%;
+      transform: translate(-71.428571%, -50%) rotate(var(--arm-angle));
       overflow: visible;
+      pointer-events: none;
       --flow-duration: 1.3s;
       --flow-opacity: .6;
     }
-
-    .slurry-pipe { fill: none; stroke: #172b37; stroke-width: 12; stroke-linecap: round; }
-    .slurry-pipe-highlight { fill: none; stroke: #829aa8; stroke-width: 2; stroke-linecap: round; }
+    .slurry-pipe { fill: none; stroke: #233e4d; stroke-width: 6; stroke-linecap: round; }
+    .slurry-pipe-highlight { fill: none; stroke: #aac0cc; stroke-width: 1.4; stroke-linecap: round; }
     .slurry-flow {
       fill: none;
       stroke: #d6f6f3;
-      stroke-width: 3;
+      stroke-width: 1.8;
       stroke-linecap: round;
-      stroke-dasharray: 5 7;
+      stroke-dasharray: 4 5;
       opacity: var(--flow-opacity);
       animation: slurry-outflow var(--flow-duration) linear infinite;
     }
     .slurry-wet { fill: #b7eeee; opacity: .35; }
-    .slurry-distributor[data-flow="off"] .slurry-flow,
-    .slurry-distributor[data-flow="off"] .slurry-wet { visibility: hidden; animation-play-state: paused; }
+    .fork-slurry[data-flow="off"] .slurry-flow,
+    .fork-slurry[data-flow="off"] .slurry-wet { visibility: hidden; animation-play-state: paused; }
     @keyframes slurry-outflow { to { stroke-dashoffset: -18; } }
     @media (prefers-reduced-motion: reduce) { .slurry-flow { animation: none; } }
 
@@ -957,20 +961,6 @@
             <div class="thickness-gauge" data-jig="4" role="img" aria-label="Jig 4 wafer thickness"><svg viewBox="0 0 80 110" aria-hidden="true"><rect x="35" y="0" width="10" height="12" rx="2" fill="#78909e" stroke="#223947"/><path d="M 35 72 V 91 H 45 V 72" fill="#a6bbc6" stroke="#304e60"/><path d="M 38 91 V 102 Q 40 106 42 102 V 91" fill="#d3e2e9" stroke="#304e60"/><circle cx="40" cy="42" r="34" fill="#263e4e" stroke="#a1b8c4" stroke-width="2"/><circle cx="40" cy="42" r="30" fill="#354e5e" stroke="#182e3b"/><text x="40" y="25" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="9" font-weight="700" text-anchor="middle">JIG 4</text><rect x="10" y="31" width="60" height="23" rx="3" fill="#152b30"/><rect x="13" y="34" width="54" height="17" rx="1" fill="#c7d8c7"/><text class="gauge-value" x="40" y="47" fill="#203c37" font-size="12.5" font-weight="700" text-anchor="middle">500.0</text><text x="40" y="62" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="8" text-anchor="middle">µm</text><circle cx="27" cy="68" r="3" fill="#162f3e"/><circle cx="40" cy="68" r="3" fill="#8aa7bb"/><circle cx="53" cy="68" r="3" fill="#65bfae"/></svg></div>
             <div class="thickness-gauge" data-jig="2" role="img" aria-label="Jig 2 wafer thickness"><svg viewBox="0 0 80 110" aria-hidden="true"><rect x="35" y="0" width="10" height="12" rx="2" fill="#78909e" stroke="#223947"/><path d="M 35 72 V 91 H 45 V 72" fill="#a6bbc6" stroke="#304e60"/><path d="M 38 91 V 102 Q 40 106 42 102 V 91" fill="#d3e2e9" stroke="#304e60"/><circle cx="40" cy="42" r="34" fill="#263e4e" stroke="#a1b8c4" stroke-width="2"/><circle cx="40" cy="42" r="30" fill="#354e5e" stroke="#182e3b"/><text x="40" y="25" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="9" font-weight="700" text-anchor="middle">JIG 2</text><rect x="10" y="31" width="60" height="23" rx="3" fill="#152b30"/><rect x="13" y="34" width="54" height="17" rx="1" fill="#c7d8c7"/><text class="gauge-value" x="40" y="47" fill="#203c37" font-size="12.5" font-weight="700" text-anchor="middle">500.0</text><text x="40" y="62" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="8" text-anchor="middle">µm</text><circle cx="27" cy="68" r="3" fill="#162f3e"/><circle cx="40" cy="68" r="3" fill="#8aa7bb"/><circle cx="53" cy="68" r="3" fill="#65bfae"/></svg></div>
             <div class="thickness-gauge" data-jig="1" role="img" aria-label="Jig 1 wafer thickness"><svg viewBox="0 0 80 110" aria-hidden="true"><rect x="35" y="0" width="10" height="12" rx="2" fill="#78909e" stroke="#223947"/><path d="M 35 72 V 91 H 45 V 72" fill="#a6bbc6" stroke="#304e60"/><path d="M 38 91 V 102 Q 40 106 42 102 V 91" fill="#d3e2e9" stroke="#304e60"/><circle cx="40" cy="42" r="34" fill="#263e4e" stroke="#a1b8c4" stroke-width="2"/><circle cx="40" cy="42" r="30" fill="#354e5e" stroke="#182e3b"/><text x="40" y="25" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="9" font-weight="700" text-anchor="middle">JIG 1</text><rect x="10" y="31" width="60" height="23" rx="3" fill="#152b30"/><rect x="13" y="34" width="54" height="17" rx="1" fill="#c7d8c7"/><text class="gauge-value" x="40" y="47" fill="#203c37" font-size="12.5" font-weight="700" text-anchor="middle">500.0</text><text x="40" y="62" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="8" text-anchor="middle">µm</text><circle cx="27" cy="68" r="3" fill="#162f3e"/><circle cx="40" cy="68" r="3" fill="#8aa7bb"/><circle cx="53" cy="68" r="3" fill="#65bfae"/></svg></div>
-            <svg id="slurryDistributor" class="slurry-distributor" data-flow="off" viewBox="-200 -200 400 400" role="img" aria-label="Central slurry distributor with four feeds">
-              <g class="slurry-branch" transform="rotate(-90)" aria-label="Slurry to Jig 3"><path class="slurry-pipe" d="M 12 0 H 78"/><path class="slurry-pipe-highlight" d="M 24 -3 H 72"/><path d="M 74 -7 H 81 V 7 H 74 Z" fill="#3b5361" stroke="#8ba3af" stroke-width="1"/><path class="slurry-flow" d="M 10 0 H 99"/><ellipse class="slurry-wet" cx="100" cy="0" rx="5" ry="3"/></g>
-              <g class="slurry-branch" transform="rotate(180)" aria-label="Slurry to Jig 4"><path class="slurry-pipe" d="M 12 0 H 78"/><path class="slurry-pipe-highlight" d="M 24 -3 H 72"/><path d="M 74 -7 H 81 V 7 H 74 Z" fill="#3b5361" stroke="#8ba3af" stroke-width="1"/><path class="slurry-flow" d="M 10 0 H 99"/><ellipse class="slurry-wet" cx="100" cy="0" rx="5" ry="3"/></g>
-              <g class="slurry-branch" transform="rotate(0)" aria-label="Slurry to Jig 2"><path class="slurry-pipe" d="M 12 0 H 78"/><path class="slurry-pipe-highlight" d="M 24 -3 H 72"/><path d="M 74 -7 H 81 V 7 H 74 Z" fill="#3b5361" stroke="#8ba3af" stroke-width="1"/><path class="slurry-flow" d="M 10 0 H 99"/><ellipse class="slurry-wet" cx="100" cy="0" rx="5" ry="3"/></g>
-              <g class="slurry-branch" transform="rotate(90)" aria-label="Slurry to Jig 1"><path class="slurry-pipe" d="M 12 0 H 78"/><path class="slurry-pipe-highlight" d="M 24 -3 H 72"/><path d="M 74 -7 H 81 V 7 H 74 Z" fill="#3b5361" stroke="#8ba3af" stroke-width="1"/><path class="slurry-flow" d="M 10 0 H 99"/><ellipse class="slurry-wet" cx="100" cy="0" rx="5" ry="3"/></g>
-              <circle r="24" fill="#213f50" stroke="#a6bdc8" stroke-width="2"/>
-              <circle r="19" fill="#344f60" stroke="#132e3d" stroke-width="1"/>
-              <g transform="rotate(-90)"><path d="M 6 0 H 25" stroke="#68c3ce" stroke-width="5"/><path class="slurry-flow" d="M 7 0 H 24"/><path d="M 47 -4 L 53 0 L 47 4" fill="none" stroke="#bcecf1" stroke-width="1.5"/></g>
-              <g transform="rotate(180)"><path d="M 6 0 H 25" stroke="#68c3ce" stroke-width="5"/><path class="slurry-flow" d="M 7 0 H 24"/><path d="M 47 -4 L 53 0 L 47 4" fill="none" stroke="#bcecf1" stroke-width="1.5"/></g>
-              <g transform="rotate(0)"><path d="M 6 0 H 25" stroke="#68c3ce" stroke-width="5"/><path class="slurry-flow" d="M 7 0 H 24"/><path d="M 47 -4 L 53 0 L 47 4" fill="none" stroke="#bcecf1" stroke-width="1.5"/></g>
-              <g transform="rotate(90)"><path d="M 6 0 H 25" stroke="#68c3ce" stroke-width="5"/><path class="slurry-flow" d="M 7 0 H 24"/><path d="M 47 -4 L 53 0 L 47 4" fill="none" stroke="#bcecf1" stroke-width="1.5"/></g>
-              <circle r="8" fill="#b3e4ea" stroke="#e6f9fb" stroke-width="1.5"/>
-
-            </svg>
             <div class="jig-vacuum" role="img" aria-label="Jig 3 Vacuum">
               <svg viewBox="0 0 48 58" aria-hidden="true"><g transform="translate(0 8) rotate(180 24 22)"><g fill="none" stroke="#edf8fc" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 13 V 23 M 10 20 L 12 23 L 14 20"/><path d="M 18 13 V 23 M 16 20 L 18 23 L 20 20"/><path d="M 24 13 V 23 M 22 20 L 24 23 L 26 20"/><path d="M 30 13 V 23 M 28 20 L 30 23 L 32 20"/><path d="M 36 13 V 23 M 34 20 L 36 23 L 38 20"/></g><path d="M 7 31 V 37 Q 24 44 41 37 V 31" fill="#9ab8c8" stroke="#edf8fc" stroke-width="1.5"/><ellipse cx="24" cy="31" rx="17" ry="4" fill="#d8e7ef" stroke="#edf8fc" stroke-width="1.5"/><path d="M 12 39 H 36" stroke="#385d76" stroke-width="2"/></g><text x="24" y="56" fill="#edf8fc" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">VAC</text></svg>
             </div>
@@ -989,6 +979,7 @@
               <div class="fork-rig">
                 <div class="jig-fork"></div>
                 <div class="jig-rotor"></div>
+                <svg class="fork-slurry" data-flow="off" data-jig="3" viewBox="-175 -65 245 130" role="img" aria-label="Fork-side slurry pipe"><path class="slurry-pipe" d="M -170 34 L -96 34 Q -73 34 -58 49 Q -42 65 -20 61"/><path class="slurry-pipe-highlight" d="M -169 32 L -96 32 Q -72 32 -57 47 Q -41 63 -21 59"/><path class="slurry-flow" d="M -170 34 L -96 34 Q -73 34 -58 49 Q -42 65 -20 61"/><path d="M -23 57 L -16 55 L -13 62 L -21 65 Z" fill="#385666" stroke="#b4cad5" stroke-width="1"/><path class="slurry-flow" d="M -17 60 Q -11 58 -8 51"/><ellipse class="slurry-wet" cx="-8" cy="51" rx="5" ry="2.5"/></svg>
               </div>
 
             </div>
@@ -997,6 +988,7 @@
               <div class="fork-rig">
                 <div class="jig-fork"></div>
                 <div class="jig-rotor"></div>
+                <svg class="fork-slurry" data-flow="off" data-jig="4" viewBox="-175 -65 245 130" role="img" aria-label="Fork-side slurry pipe"><path class="slurry-pipe" d="M -170 34 L -96 34 Q -73 34 -58 49 Q -42 65 -20 61"/><path class="slurry-pipe-highlight" d="M -169 32 L -96 32 Q -72 32 -57 47 Q -41 63 -21 59"/><path class="slurry-flow" d="M -170 34 L -96 34 Q -73 34 -58 49 Q -42 65 -20 61"/><path d="M -23 57 L -16 55 L -13 62 L -21 65 Z" fill="#385666" stroke="#b4cad5" stroke-width="1"/><path class="slurry-flow" d="M -17 60 Q -11 58 -8 51"/><ellipse class="slurry-wet" cx="-8" cy="51" rx="5" ry="2.5"/></svg>
               </div>
 
             </div>
@@ -1005,6 +997,7 @@
               <div class="fork-rig">
                 <div class="jig-fork"></div>
                 <div class="jig-rotor"></div>
+                <svg class="fork-slurry" data-flow="off" data-jig="2" viewBox="-175 -65 245 130" role="img" aria-label="Fork-side slurry pipe"><path class="slurry-pipe" d="M -170 34 L -96 34 Q -73 34 -58 49 Q -42 65 -20 61"/><path class="slurry-pipe-highlight" d="M -169 32 L -96 32 Q -72 32 -57 47 Q -41 63 -21 59"/><path class="slurry-flow" d="M -170 34 L -96 34 Q -73 34 -58 49 Q -42 65 -20 61"/><path d="M -23 57 L -16 55 L -13 62 L -21 65 Z" fill="#385666" stroke="#b4cad5" stroke-width="1"/><path class="slurry-flow" d="M -17 60 Q -11 58 -8 51"/><ellipse class="slurry-wet" cx="-8" cy="51" rx="5" ry="2.5"/></svg>
               </div>
 
             </div>
@@ -1013,6 +1006,7 @@
               <div class="fork-rig">
                 <div class="jig-fork"></div>
                 <div class="jig-rotor"></div>
+                <svg class="fork-slurry" data-flow="off" data-jig="1" viewBox="-175 -65 245 130" role="img" aria-label="Fork-side slurry pipe"><path class="slurry-pipe" d="M -170 34 L -96 34 Q -73 34 -58 49 Q -42 65 -20 61"/><path class="slurry-pipe-highlight" d="M -169 32 L -96 32 Q -72 32 -57 47 Q -41 63 -21 59"/><path class="slurry-flow" d="M -170 34 L -96 34 Q -73 34 -58 49 Q -42 65 -20 61"/><path d="M -23 57 L -16 55 L -13 62 L -21 65 Z" fill="#385666" stroke="#b4cad5" stroke-width="1"/><path class="slurry-flow" d="M -17 60 Q -11 58 -8 51"/><ellipse class="slurry-wet" cx="-8" cy="51" rx="5" ry="2.5"/></svg>
               </div>
 
             </div>
@@ -1154,7 +1148,7 @@
     const jigHolders = Array.from(document.querySelectorAll(".jig"));
     const jigRotors = Array.from(document.querySelectorAll(".jig-rotor"));
     const zeroButtons = Array.from(document.querySelectorAll("[data-zero]"));
-    const slurryDistributor = document.getElementById("slurryDistributor");
+    const forkSlurryPipes = Array.from(document.querySelectorAll(".fork-slurry"));
     const defaultGeometry = {
       plateOD: 420,
       centerOD: 140,
@@ -1459,9 +1453,11 @@
       const activeFlow = state.unitActive.slurry ? flow : 0;
       const activity = activeFlow / 100;
       const duration = 1.6 - activity * 1.1;
-      slurryDistributor.dataset.flow = activeFlow > 0 ? "on" : "off";
-      slurryDistributor.style.setProperty("--flow-duration", duration.toFixed(2) + "s");
-      slurryDistributor.style.setProperty("--flow-opacity", String(.35 + activity * .55));
+      forkSlurryPipes.forEach(pipe => {
+        pipe.dataset.flow = activeFlow > 0 ? "on" : "off";
+        pipe.style.setProperty("--flow-duration", duration.toFixed(2) + "s");
+        pipe.style.setProperty("--flow-opacity", String(.35 + activity * .55));
+      });
     }
 
     function renderCalc() {
@@ -1548,7 +1544,7 @@
         ...jigHolders.flatMap(holder => [holder.offsetWidth, holder.offsetHeight])].join(",");
       if (layoutKey === jigLayoutKey) return;
       jigLayoutKey = layoutKey;
-      // Land between the Jig stations; keep the pipe bodies outside the plate.
+      // Keep instruments clear of the plate; slurry pipes follow their Fork rigs.
       const sideGaugeAngle = board.clientWidth < plateRadius * 2.7 ? 26 : 8;
       const gaugeAngles = [-78, 180 + sideGaugeAngle, sideGaugeAngle, 110];
       document.querySelectorAll(".thickness-gauge").forEach((gauge, index) => {
@@ -1575,10 +1571,6 @@
         icon.style.top = (el.plateDisk.offsetTop + Math.sin(angle) * 1.25 * plateRadius) + "px";
         icon.style.setProperty("--vacuum-size", Math.min(52, plateRadius * .28) + "px");
       });
-      slurryDistributor.style.left = el.plateDisk.offsetLeft + "px";
-      slurryDistributor.style.top = el.plateDisk.offsetTop + "px";
-      slurryDistributor.style.width = (plateRadius * 2) + "px";
-      slurryDistributor.style.height = (plateRadius * 2) + "px";
       const directions = [[0, -1], [-1, 0], [1, 0], [0, 1]];
       jigSwingLimits = jigHolders.map((holder, index) => {
         const radius = holder.offsetWidth / 2;
