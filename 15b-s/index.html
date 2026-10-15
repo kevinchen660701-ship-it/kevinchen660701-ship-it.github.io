@@ -1612,8 +1612,8 @@
       const plateDegPerSec = plateRpm * 360 / 60;
       const jigDegPerSec = jigRpm * 360 / 60;
 
-      state.plateAngle = (state.plateAngle + plateDegPerSec * dt * plateActivity) % 360;
-      state.jigAngle = (state.jigAngle - jigDegPerSec * dt * jigActivity) % 360;
+      state.plateAngle = (state.plateAngle - plateDegPerSec * dt * plateActivity) % 360;
+      state.jigAngle = (state.jigAngle + jigDegPerSec * dt * jigActivity) % 360;
       el.animSpeedText.textContent = `Plate ${plateActivity ? plateRpm.toFixed(0) : 0} / Jig ${jigActivity ? jigRpm.toFixed(0) : 0} rpm`;
       el.plateDisk.style.transform = `translate(-50%, -50%) rotate(${state.plateAngle}deg)`;
       const geometry = geometryInputs();
