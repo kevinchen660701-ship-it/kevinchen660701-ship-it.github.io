@@ -1528,7 +1528,42 @@
       renderCalc();
     }
 
+    // Keep the whole Jig inside the lower plate throughout its pivot arc.
+    let jigSwingLimits = [];
+    let jigLayoutKey = "";
+    function fitJigsToPlate() {
+      const plateRadius = el.plateDisk.offsetWidth / 2;
+      const requestedRange = clamp(geometryInputs().jigSweep / 20 * 7, 3, 12);
+      const layoutKey = [el.plateDisk.offsetLeft, el.plateDisk.offsetTop, plateRadius, requestedRange,
+        ...jigHolders.flatMap(holder => [holder.offsetWidth, holder.offsetHeight])].join(",");
+      if (layoutKey === jigLayoutKey) return;
+      jigLayoutKey = layoutKey;
+      const directions = [[0, -1], [-1, 0], [1, 0], [0, 1]];
+      jigSwingLimits = jigHolders.map((holder, index) => {
+        const radius = holder.offsetWidth / 2;
+        const margin = 3;
+        const orbit = Math.max(0, Math.min(plateRadius * 0.62, plateRadius - radius - margin));
+        const [dx, dy] = directions[index];
+        holder.style.left = `${el.plateDisk.offsetLeft + dx * orbit}px`;
+        holder.style.top = `${el.plateDisk.offsetTop + dy * orbit}px`;
+        const style = getComputedStyle(holder);
+        const pivotX = parseFloat(style.getPropertyValue("--support-x")) / 100 * holder.offsetWidth;
+        const pivotY = parseFloat(style.getPropertyValue("--support-y")) / 100 * holder.offsetHeight;
+        const armRadius = Math.hypot(holder.offsetWidth / 2 - pivotX, holder.offsetHeight / 2 - pivotY);
+        const clearance = Math.max(0, plateRadius - radius - orbit - margin);
+        // A pivot turn displaces the center by 2 L sin(angle / 2).
+        // Bounding that displacement protects the full arc, including its endpoints.
+        const safeRange = armRadius > 0 ? 2 * Math.asin(clamp(clearance / (2 * armRadius), 0, 1)) * 180 / Math.PI : 0;
+        return Math.min(requestedRange, safeRange);
+      });
+    }
+    const plateLayoutObserver = new ResizeObserver(fitJigsToPlate);
+    plateLayoutObserver.observe(document.querySelector(".polisher"));
+    plateLayoutObserver.observe(el.plateDisk);
+    fitJigsToPlate();
+
     function animate(now) {
+      fitJigsToPlate();
       const dt = Math.min(0.08, (now - state.lastFrame) / 1000);
       state.lastFrame = now;
       const calc = state.calc || calculate();
@@ -1546,11 +1581,11 @@
       const geometry = geometryInputs();
       const sweepHz = clamp(jigRpm / 180, 0.04, 0.38);
       const sweepPhase = now / 1000 * sweepHz * Math.PI * 2;
-      const rockRange = clamp(geometry.jigSweep / 20 * 7, 3, 12);
-      const rockDeg = Math.sin(sweepPhase) * rockRange * jigActivity;
+      const swingPosition = Math.sin(sweepPhase) * jigActivity;
       jigHolders.forEach((holder, index) => {
         holder.style.transform = "translate(-50%, -50%)";
-        holder.style.setProperty("--rock", `${(index % 2 === 0 ? rockDeg : -rockDeg).toFixed(2)}deg`);
+        const rockDeg = swingPosition * (jigSwingLimits[index] || 0);
+        holder.style.setProperty("--rock", `${(index % 2 === 0 ? rockDeg : -rockDeg)}deg`);
       });
       jigRotors.forEach((rotor, index) => {
         rotor.style.transform = `rotate(${state.jigAngle + index * 34}deg)`;
