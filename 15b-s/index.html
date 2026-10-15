@@ -1558,7 +1558,7 @@
         const halfHeight = size * .6875;
         let x = el.plateDisk.offsetLeft + Math.cos(angle) * 1.2 * plateRadius + (jig === 2 ? size * .2 : 0);
         let y = el.plateDisk.offsetTop + Math.sin(angle) * 1.2 * plateRadius;
-        if (jig === 3) y = el.plateDisk.offsetTop - plateRadius - halfHeight - 6;
+        if (jig === 3) y = el.plateDisk.offsetTop - plateRadius - halfHeight - 2;
         if (jig === 1) y = el.plateDisk.offsetTop + plateRadius + halfHeight + 6;
         if (jig === 2) y += size * .14;
         if (jig === 3 || jig === 4) x -= size * .14;
