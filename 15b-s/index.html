@@ -536,14 +536,10 @@
       width: 98px;
       height: 100px;
       pointer-events: none;
-      transform: translate(-84px, -88px);
+      transform: translate(-84px, -88px) rotate(var(--nozzle-angle)) scale(var(--nozzle-scale, 1));
+      transform-origin: 84px 88px;
       --flow-duration: 1.3s;
       --flow-opacity: .6;
-    }
-
-    .slurry-two, .slurry-four {
-      transform: translate(-84px, -88px) scaleX(-1);
-      transform-origin: 84px 50%;
     }
 
     .slurry-line {
@@ -1572,10 +1568,13 @@
         ...jigHolders.flatMap(holder => [holder.offsetWidth, holder.offsetHeight])].join(",");
       if (layoutKey === jigLayoutKey) return;
       jigLayoutKey = layoutKey;
-      const outlets = [[-.48, -.48], [.48, -.48], [-.48, .48], [.48, .48]];
+      // Land between the Jig stations; keep the pipe bodies outside the plate.
+      const outlets = [[-.622, -.622, 315], [.622, -.622, 45], [-.622, .622, 225], [.622, .622, 135]];
       slurryNozzles.forEach((nozzle, index) => {
         nozzle.style.left = (el.plateDisk.offsetLeft + outlets[index][0] * plateRadius) + "px";
         nozzle.style.top = (el.plateDisk.offsetTop + outlets[index][1] * plateRadius) + "px";
+        nozzle.style.setProperty("--nozzle-angle", outlets[index][2] + "deg");
+        nozzle.style.setProperty("--nozzle-scale", Math.min(1, plateRadius / 200));
       });
       const directions = [[0, -1], [-1, 0], [1, 0], [0, 1]];
       jigSwingLimits = jigHolders.map((holder, index) => {
