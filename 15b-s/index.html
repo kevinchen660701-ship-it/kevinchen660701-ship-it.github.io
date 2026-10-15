@@ -1556,10 +1556,13 @@
         const size = Math.min(96, plateRadius * .48);
         const jig = Number(gauge.dataset.jig);
         const halfHeight = size * .6875;
-        const x = el.plateDisk.offsetLeft + Math.cos(angle) * 1.2 * plateRadius + (jig === 2 ? size * .2 : 0);
+        let x = el.plateDisk.offsetLeft + Math.cos(angle) * 1.2 * plateRadius + (jig === 2 ? size * .2 : 0);
         let y = el.plateDisk.offsetTop + Math.sin(angle) * 1.2 * plateRadius;
         if (jig === 3) y = el.plateDisk.offsetTop - plateRadius - halfHeight - 6;
         if (jig === 1) y = el.plateDisk.offsetTop + plateRadius + halfHeight + 6;
+        if (jig === 2) y += size * .14;
+        if (jig === 3 || jig === 4) x -= size * .14;
+        if (jig === 1) x += size * .18;
         gauge.style.setProperty("--gauge-size", size + "px");
         gauge.style.left = clamp(x, size / 2 + 4, board.clientWidth - size / 2 - 4) + "px";
         gauge.style.top = clamp(y, halfHeight + 4, board.clientHeight - halfHeight - 4) + "px";
@@ -1567,7 +1570,8 @@
       const vacuumAngles = [255, 165, 345, 75];
       document.querySelectorAll(".jig-vacuum").forEach((icon, index) => {
         const angle = vacuumAngles[index] * Math.PI / 180;
-        icon.style.left = (el.plateDisk.offsetLeft + Math.cos(angle) * 1.25 * plateRadius) + "px";
+        const vacuumOffsetX = index === 3 ? -plateRadius * .08 : 0;
+        icon.style.left = (el.plateDisk.offsetLeft + Math.cos(angle) * 1.25 * plateRadius + vacuumOffsetX) + "px";
         icon.style.top = (el.plateDisk.offsetTop + Math.sin(angle) * 1.25 * plateRadius) + "px";
         icon.style.setProperty("--vacuum-size", Math.min(52, plateRadius * .28) + "px");
       });
