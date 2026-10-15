@@ -1585,7 +1585,7 @@
       jigHolders.forEach((holder, index) => {
         holder.style.transform = "translate(-50%, -50%)";
         const rockDeg = swingPosition * (jigSwingLimits[index] || 0);
-        holder.style.setProperty("--rock", `${(index % 2 === 0 ? rockDeg : -rockDeg)}deg`);
+        holder.style.setProperty("--rock", `${rockDeg}deg`);
       });
       jigRotors.forEach((rotor, index) => {
         rotor.style.transform = `rotate(${state.jigAngle + index * 34}deg)`;
