@@ -492,42 +492,37 @@
 
     .fork-support {
       position: absolute;
-      z-index: 5;
+      z-index: 4;
       left: var(--support-x);
       top: var(--support-y);
-      width: 48%;
+      width: 20%;
       aspect-ratio: 1;
       transform: translate(-50%, -50%);
-      border-radius: 50%;
-      background:
-        radial-gradient(circle at 50% 50%, #dfe4e7 0 23%, #88959e 24% 35%, transparent 36%),
-        repeating-radial-gradient(circle, transparent 0 27%, rgba(52,61,66,.34) 28% 30%, transparent 31% 43%),
-        linear-gradient(145deg, #c8d0d5, #6e7b83);
-      border: 3px solid rgba(63, 72, 77, .52);
-      box-shadow: inset 0 2px 4px rgba(255,255,255,.56), 0 3px 7px rgba(0,0,0,.24);
+      pointer-events: none;
     }
 
     .fork-support::before {
       content: "";
       position: absolute;
-      left: 50%;
+      z-index: 1;
+      left: 15%;
       top: 50%;
-      width: 88%;
-      height: 42%;
-      transform: translate(-50%, -50%) rotate(var(--support-rotate));
-      border-radius: 8px;
-      background: linear-gradient(180deg, #d98635, #a84f17);
-      border: 2px solid rgba(91, 45, 14, .45);
-      box-shadow: inset 0 1px 2px rgba(255,255,255,.3);
+      width: 70%;
+      height: 115%;
+      border-radius: 0 0 45% 45%;
+      background: linear-gradient(90deg, #52636d, #d5e1e5 35%, #94a9b3 65%, #4c626f);
+      border: 1px solid #455b68;
+      box-shadow: 2px 3px 3px rgba(20,42,58,.25);
     }
 
     .fork-support::after {
       content: "";
       position: absolute;
-      inset: 23%;
+      z-index: 5;
+      inset: 10%;
       border-radius: 50%;
-      background: radial-gradient(circle at 36% 28%, #f2f5f6 0 12%, #adb7bd 32%, #77838b 100%);
-      border: 2px solid rgba(55, 63, 68, .48);
+      background: linear-gradient(135deg, #d8e1e5, #8298a4);
+      border: 1px solid #455b68;
     }
 
     .slurry-nozzle {
