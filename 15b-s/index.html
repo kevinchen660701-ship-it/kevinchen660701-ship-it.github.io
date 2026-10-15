@@ -518,7 +518,7 @@
     .thickness-gauge {
       position: absolute;
       z-index: 7;
-      width: var(--gauge-size, 72px);
+      width: var(--gauge-size, 96px);
       transform: translate(-50%, -50%);
       pointer-events: none;
     }
@@ -774,6 +774,8 @@
     }
 
     @media (max-width: 720px) {
+      .polisher { min-height: 460px; }
+
       .app {
         padding: 10px;
       }
@@ -1545,14 +1547,15 @@
       if (layoutKey === jigLayoutKey) return;
       jigLayoutKey = layoutKey;
       // Land between the Jig stations; keep the pipe bodies outside the plate.
-      const gaugeAngles = [-78, 188, 8, 102];
       const board = document.querySelector(".polisher");
+      const sideGaugeAngle = board.clientWidth < plateRadius * 2.7 ? 26 : 8;
+      const gaugeAngles = [-78, 180 + sideGaugeAngle, sideGaugeAngle, 110];
       document.querySelectorAll(".thickness-gauge").forEach((gauge, index) => {
         const angle = gaugeAngles[index] * Math.PI / 180;
-        const size = Math.min(72, plateRadius * .36);
+        const size = Math.min(96, plateRadius * .48);
         gauge.style.setProperty("--gauge-size", size + "px");
-        gauge.style.left = clamp(el.plateDisk.offsetLeft + Math.cos(angle) * 1.3 * plateRadius, size / 2 + 4, board.clientWidth - size / 2 - 4) + "px";
-        gauge.style.top = clamp(el.plateDisk.offsetTop + Math.sin(angle) * 1.3 * plateRadius, size * .6875 + 4, board.clientHeight - size * .6875 - 4) + "px";
+        gauge.style.left = clamp(el.plateDisk.offsetLeft + Math.cos(angle) * 1.2 * plateRadius, size / 2 + 4, board.clientWidth - size / 2 - 4) + "px";
+        gauge.style.top = clamp(el.plateDisk.offsetTop + Math.sin(angle) * 1.2 * plateRadius, size * .6875 + 4, board.clientHeight - size * .6875 - 4) + "px";
       });
       const vacuumAngles = [255, 165, 345, 75];
       document.querySelectorAll(".jig-vacuum").forEach((icon, index) => {
