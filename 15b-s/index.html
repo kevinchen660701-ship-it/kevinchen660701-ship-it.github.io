@@ -528,7 +528,7 @@
       border-radius: 50%;
       background: #e0e9ee;
     }
-    .vacuum-plate .jig-vacuum { width: 42px; }
+    .vacuum-plate .jig-vacuum { width: 44px; }
     .vacuum-plate [data-jig="1"] { left: 50%; top: 80%; }
     .vacuum-plate [data-jig="2"] { left: 80%; top: 50%; }
     .vacuum-plate [data-jig="3"] { left: 50%; top: 20%; }
@@ -537,12 +537,24 @@
     .jig-vacuum {
       position: absolute;
       z-index: 7;
-      width: var(--vacuum-size, 52px);
       height: auto;
+      min-height: 0;
+      padding: 2px;
       transform: translate(-50%, -50%);
-      color: #d7ebf4;
-      pointer-events: none;
+      color: #24495f;
+      background: rgba(239, 247, 251, .7);
+      border: 1px solid #8ba4b4;
+      border-radius: 6px;
+      box-shadow: 0 1px 2px #233d4f22;
+      cursor: pointer;
+      touch-action: manipulation;
     }
+    .jig-vacuum:hover { background: #edf7fb; border-color: #476d84; }
+    .jig-vacuum.is-active { color: #0d6340; background: #d2f4e2; border-color: #278759; box-shadow: 0 0 5px #38b77e66; }
+    .jig-vacuum:focus-visible { outline: 2px solid #245d86; outline-offset: 2px; }
+    .jig-vacuum .vacuum-status { opacity: .3; }
+    .jig-vacuum.is-active .vacuum-status { opacity: 1; }
+    .jig.is-vacuum-on .jig-rotor { outline: 2px solid #72cfaa; outline-offset: -4px; }
 
     .jig-vacuum svg { display: block; width: 100%; height: auto; }
 
@@ -902,18 +914,18 @@
         <div class="control-block vacuum-panel">
           <h2>Jig Vacuum</h2>
           <div class="vacuum-plate" role="group" aria-label="Jig vacuum layout: bottom 1, right 2, top 3, left 4">
-            <div class="jig-vacuum" data-jig="3" role="img" aria-label="Jig 3 Vacuum">
-              <svg viewBox="0 0 48 58" aria-hidden="true"><text x="24" y="8" fill="#24495f" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700">JIG 3</text><g transform="translate(0 8) rotate(180 24 22)"><g fill="none" stroke="#24495f" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 13 V 23 M 10 20 L 12 23 L 14 20"/><path d="M 18 13 V 23 M 16 20 L 18 23 L 20 20"/><path d="M 24 13 V 23 M 22 20 L 24 23 L 26 20"/><path d="M 30 13 V 23 M 28 20 L 30 23 L 32 20"/><path d="M 36 13 V 23 M 34 20 L 36 23 L 38 20"/></g><path d="M 7 31 V 37 Q 24 44 41 37 V 31" fill="#9ab8c8" stroke="#24495f" stroke-width="1.5"/><ellipse cx="24" cy="31" rx="17" ry="4" fill="#d8e7ef" stroke="#24495f" stroke-width="1.5"/><path d="M 12 39 H 36" stroke="#385d76" stroke-width="2"/></g><text x="24" y="56" fill="#24495f" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">VAC</text></svg>
-            </div>
-            <div class="jig-vacuum" data-jig="4" role="img" aria-label="Jig 4 Vacuum">
-              <svg viewBox="0 0 48 58" aria-hidden="true"><text x="24" y="8" fill="#24495f" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700">JIG 4</text><g transform="translate(0 8) rotate(180 24 22)"><g fill="none" stroke="#24495f" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 13 V 23 M 10 20 L 12 23 L 14 20"/><path d="M 18 13 V 23 M 16 20 L 18 23 L 20 20"/><path d="M 24 13 V 23 M 22 20 L 24 23 L 26 20"/><path d="M 30 13 V 23 M 28 20 L 30 23 L 32 20"/><path d="M 36 13 V 23 M 34 20 L 36 23 L 38 20"/></g><path d="M 7 31 V 37 Q 24 44 41 37 V 31" fill="#9ab8c8" stroke="#24495f" stroke-width="1.5"/><ellipse cx="24" cy="31" rx="17" ry="4" fill="#d8e7ef" stroke="#24495f" stroke-width="1.5"/><path d="M 12 39 H 36" stroke="#385d76" stroke-width="2"/></g><text x="24" y="56" fill="#24495f" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">VAC</text></svg>
-            </div>
-            <div class="jig-vacuum" data-jig="2" role="img" aria-label="Jig 2 Vacuum">
-              <svg viewBox="0 0 48 58" aria-hidden="true"><text x="24" y="8" fill="#24495f" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700">JIG 2</text><g transform="translate(0 8) rotate(180 24 22)"><g fill="none" stroke="#24495f" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 13 V 23 M 10 20 L 12 23 L 14 20"/><path d="M 18 13 V 23 M 16 20 L 18 23 L 20 20"/><path d="M 24 13 V 23 M 22 20 L 24 23 L 26 20"/><path d="M 30 13 V 23 M 28 20 L 30 23 L 32 20"/><path d="M 36 13 V 23 M 34 20 L 36 23 L 38 20"/></g><path d="M 7 31 V 37 Q 24 44 41 37 V 31" fill="#9ab8c8" stroke="#24495f" stroke-width="1.5"/><ellipse cx="24" cy="31" rx="17" ry="4" fill="#d8e7ef" stroke="#24495f" stroke-width="1.5"/><path d="M 12 39 H 36" stroke="#385d76" stroke-width="2"/></g><text x="24" y="56" fill="#24495f" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">VAC</text></svg>
-            </div>
-            <div class="jig-vacuum" data-jig="1" role="img" aria-label="Jig 1 Vacuum">
-              <svg viewBox="0 0 48 58" aria-hidden="true"><text x="24" y="8" fill="#24495f" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700">JIG 1</text><g transform="translate(0 8) rotate(180 24 22)"><g fill="none" stroke="#24495f" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 13 V 23 M 10 20 L 12 23 L 14 20"/><path d="M 18 13 V 23 M 16 20 L 18 23 L 20 20"/><path d="M 24 13 V 23 M 22 20 L 24 23 L 26 20"/><path d="M 30 13 V 23 M 28 20 L 30 23 L 32 20"/><path d="M 36 13 V 23 M 34 20 L 36 23 L 38 20"/></g><path d="M 7 31 V 37 Q 24 44 41 37 V 31" fill="#9ab8c8" stroke="#24495f" stroke-width="1.5"/><ellipse cx="24" cy="31" rx="17" ry="4" fill="#d8e7ef" stroke="#24495f" stroke-width="1.5"/><path d="M 12 39 H 36" stroke="#385d76" stroke-width="2"/></g><text x="24" y="56" fill="#24495f" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">VAC</text></svg>
-            </div>
+            <button type="button" class="jig-vacuum" data-jig="3" aria-pressed="false" aria-label="Jig 3 Vacuum">
+              <svg viewBox="0 0 48 58" aria-hidden="true"><text x="24" y="8" fill="currentColor" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700">JIG 3</text><g transform="translate(0 8) rotate(180 24 22)"><g fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 13 V 23 M 10 20 L 12 23 L 14 20"/><path d="M 18 13 V 23 M 16 20 L 18 23 L 20 20"/><path d="M 24 13 V 23 M 22 20 L 24 23 L 26 20"/><path d="M 30 13 V 23 M 28 20 L 30 23 L 32 20"/><path d="M 36 13 V 23 M 34 20 L 36 23 L 38 20"/></g><path d="M 7 31 V 37 Q 24 44 41 37 V 31" fill="#9ab8c8" stroke="currentColor" stroke-width="1.5"/><ellipse cx="24" cy="31" rx="17" ry="4" fill="#d8e7ef" stroke="currentColor" stroke-width="1.5"/><path d="M 12 39 H 36" stroke="#385d76" stroke-width="2"/></g><text x="24" y="56" fill="currentColor" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">VAC</text><circle class="vacuum-status" cx="43" cy="7" r="2.2" fill="currentColor"/></svg>
+            </button>
+            <button type="button" class="jig-vacuum" data-jig="4" aria-pressed="false" aria-label="Jig 4 Vacuum">
+              <svg viewBox="0 0 48 58" aria-hidden="true"><text x="24" y="8" fill="currentColor" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700">JIG 4</text><g transform="translate(0 8) rotate(180 24 22)"><g fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 13 V 23 M 10 20 L 12 23 L 14 20"/><path d="M 18 13 V 23 M 16 20 L 18 23 L 20 20"/><path d="M 24 13 V 23 M 22 20 L 24 23 L 26 20"/><path d="M 30 13 V 23 M 28 20 L 30 23 L 32 20"/><path d="M 36 13 V 23 M 34 20 L 36 23 L 38 20"/></g><path d="M 7 31 V 37 Q 24 44 41 37 V 31" fill="#9ab8c8" stroke="currentColor" stroke-width="1.5"/><ellipse cx="24" cy="31" rx="17" ry="4" fill="#d8e7ef" stroke="currentColor" stroke-width="1.5"/><path d="M 12 39 H 36" stroke="#385d76" stroke-width="2"/></g><text x="24" y="56" fill="currentColor" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">VAC</text><circle class="vacuum-status" cx="43" cy="7" r="2.2" fill="currentColor"/></svg>
+            </button>
+            <button type="button" class="jig-vacuum" data-jig="2" aria-pressed="false" aria-label="Jig 2 Vacuum">
+              <svg viewBox="0 0 48 58" aria-hidden="true"><text x="24" y="8" fill="currentColor" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700">JIG 2</text><g transform="translate(0 8) rotate(180 24 22)"><g fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 13 V 23 M 10 20 L 12 23 L 14 20"/><path d="M 18 13 V 23 M 16 20 L 18 23 L 20 20"/><path d="M 24 13 V 23 M 22 20 L 24 23 L 26 20"/><path d="M 30 13 V 23 M 28 20 L 30 23 L 32 20"/><path d="M 36 13 V 23 M 34 20 L 36 23 L 38 20"/></g><path d="M 7 31 V 37 Q 24 44 41 37 V 31" fill="#9ab8c8" stroke="currentColor" stroke-width="1.5"/><ellipse cx="24" cy="31" rx="17" ry="4" fill="#d8e7ef" stroke="currentColor" stroke-width="1.5"/><path d="M 12 39 H 36" stroke="#385d76" stroke-width="2"/></g><text x="24" y="56" fill="currentColor" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">VAC</text><circle class="vacuum-status" cx="43" cy="7" r="2.2" fill="currentColor"/></svg>
+            </button>
+            <button type="button" class="jig-vacuum" data-jig="1" aria-pressed="false" aria-label="Jig 1 Vacuum">
+              <svg viewBox="0 0 48 58" aria-hidden="true"><text x="24" y="8" fill="currentColor" text-anchor="middle" font-family="Arial,sans-serif" font-size="9" font-weight="700">JIG 1</text><g transform="translate(0 8) rotate(180 24 22)"><g fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M 12 13 V 23 M 10 20 L 12 23 L 14 20"/><path d="M 18 13 V 23 M 16 20 L 18 23 L 20 20"/><path d="M 24 13 V 23 M 22 20 L 24 23 L 26 20"/><path d="M 30 13 V 23 M 28 20 L 30 23 L 32 20"/><path d="M 36 13 V 23 M 34 20 L 36 23 L 38 20"/></g><path d="M 7 31 V 37 Q 24 44 41 37 V 31" fill="#9ab8c8" stroke="currentColor" stroke-width="1.5"/><ellipse cx="24" cy="31" rx="17" ry="4" fill="#d8e7ef" stroke="currentColor" stroke-width="1.5"/><path d="M 12 39 H 36" stroke="#385d76" stroke-width="2"/></g><text x="24" y="56" fill="currentColor" text-anchor="middle" font-family="Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="1.5">VAC</text><circle class="vacuum-status" cx="43" cy="7" r="2.2" fill="currentColor"/></svg>
+            </button>
           </div>
         </div>
       </section>
@@ -1001,7 +1013,7 @@
             <div class="thickness-gauge" data-jig="2" role="img" aria-label="Jig 2 wafer thickness"><svg viewBox="0 0 80 110" aria-hidden="true"><rect x="35" y="0" width="10" height="12" rx="2" fill="#78909e" stroke="#223947"/><path d="M 35 72 V 91 H 45 V 72" fill="#a6bbc6" stroke="#304e60"/><path d="M 38 91 V 102 Q 40 106 42 102 V 91" fill="#d3e2e9" stroke="#304e60"/><circle cx="40" cy="42" r="34" fill="#263e4e" stroke="#a1b8c4" stroke-width="2"/><circle cx="40" cy="42" r="30" fill="#354e5e" stroke="#182e3b"/><text x="40" y="25" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="9" font-weight="700" text-anchor="middle">JIG 2</text><rect x="10" y="31" width="60" height="23" rx="3" fill="#152b30"/><rect x="13" y="34" width="54" height="17" rx="1" fill="#c7d8c7"/><text class="gauge-value" x="40" y="47" fill="#203c37" font-size="12.5" font-weight="700" text-anchor="middle">500.0</text><text x="40" y="62" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="8" text-anchor="middle">µm</text><circle cx="27" cy="68" r="3" fill="#162f3e"/><circle cx="40" cy="68" r="3" fill="#8aa7bb"/><circle cx="53" cy="68" r="3" fill="#65bfae"/></svg></div>
             <div class="thickness-gauge" data-jig="1" role="img" aria-label="Jig 1 wafer thickness"><svg viewBox="0 0 80 110" aria-hidden="true"><rect x="35" y="0" width="10" height="12" rx="2" fill="#78909e" stroke="#223947"/><path d="M 35 72 V 91 H 45 V 72" fill="#a6bbc6" stroke="#304e60"/><path d="M 38 91 V 102 Q 40 106 42 102 V 91" fill="#d3e2e9" stroke="#304e60"/><circle cx="40" cy="42" r="34" fill="#263e4e" stroke="#a1b8c4" stroke-width="2"/><circle cx="40" cy="42" r="30" fill="#354e5e" stroke="#182e3b"/><text x="40" y="25" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="9" font-weight="700" text-anchor="middle">JIG 1</text><rect x="10" y="31" width="60" height="23" rx="3" fill="#152b30"/><rect x="13" y="34" width="54" height="17" rx="1" fill="#c7d8c7"/><text class="gauge-value" x="40" y="47" fill="#203c37" font-size="12.5" font-weight="700" text-anchor="middle">500.0</text><text x="40" y="62" fill="#d5e5ed" font-family="Arial,sans-serif" font-size="8" text-anchor="middle">µm</text><circle cx="27" cy="68" r="3" fill="#162f3e"/><circle cx="40" cy="68" r="3" fill="#8aa7bb"/><circle cx="53" cy="68" r="3" fill="#65bfae"/></svg></div>
             <div class="plate-disk" id="plateDisk"></div>
-            <div class="jig one">
+            <div class="jig one" data-jig="3">
               <div class="fork-support"></div>
               <div class="fork-rig">
                 <div class="jig-fork"></div>
@@ -1010,7 +1022,7 @@
               </div>
 
             </div>
-            <div class="jig two">
+            <div class="jig two" data-jig="4">
               <div class="fork-support"></div>
               <div class="fork-rig">
                 <div class="jig-fork"></div>
@@ -1019,7 +1031,7 @@
               </div>
 
             </div>
-            <div class="jig three">
+            <div class="jig three" data-jig="2">
               <div class="fork-support"></div>
               <div class="fork-rig">
                 <div class="jig-fork"></div>
@@ -1028,7 +1040,7 @@
               </div>
 
             </div>
-            <div class="jig four">
+            <div class="jig four" data-jig="1">
               <div class="fork-support"></div>
               <div class="fork-rig">
                 <div class="jig-fork"></div>
@@ -1195,6 +1207,7 @@
 
     const state = {
       running: false,
+      vacuumActive: { 1: false, 2: false, 3: false, 4: false },
       agitatorMode: "off",
       agitatorPreferred: "L",
       totalSec: 0,
@@ -1516,6 +1529,16 @@
       }
     }
 
+    function setJigVacuum(jig, isActive) {
+      state.vacuumActive[jig] = isActive;
+      const button = document.querySelector('.jig-vacuum[data-jig="' + jig + '"]');
+      button.classList.toggle("is-active", isActive);
+      button.setAttribute("aria-pressed", String(isActive));
+      button.title = "Jig " + jig + " 真空：" + (isActive ? "開啟" : "關閉");
+      const holder = jigHolders.find(holder => Number(holder.dataset.jig) === jig);
+      holder.classList.toggle("is-vacuum-on", isActive);
+    }
+
     function setUnitActive(unit, isActive) {
       state.unitActive[unit] = isActive;
       unitLamps[unit].classList.toggle("is-active", isActive);
@@ -1740,6 +1763,12 @@
         setAgitatorMode(state.agitatorMode === level ? "off" : level);
         saveInputs();
       });
+    });
+
+    document.querySelectorAll(".jig-vacuum").forEach(button => {
+      const jig = Number(button.dataset.jig);
+      setJigVacuum(jig, false);
+      button.addEventListener("click", () => setJigVacuum(jig, !state.vacuumActive[jig]));
     });
 
     restoreInputs();
