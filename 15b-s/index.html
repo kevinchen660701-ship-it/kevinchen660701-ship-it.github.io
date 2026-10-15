@@ -900,6 +900,15 @@
         </div>
 
         <div class="control-block">
+          <h2>Fork 搖擺速度</h2>
+          <div class="field-row">
+            <input id="swingSpeed" aria-label="Fork 搖擺速度" type="number" value="6" min="0" max="30" step="0.5">
+            <span class="unit">次/分</span>
+          </div>
+          <div class="small-text">一次為向內、向外完整往返；0 為暫停搖擺。</div>
+        </div>
+
+        <div class="control-block">
           <h2>Colloidal</h2>
           <div class="field-row">
             <input id="colloidalFlow" type="number" value="20" min="0" max="100">
@@ -1178,7 +1187,7 @@
 
   <script>
     const ids = [
-      "plateRpm", "jigRpm", "colloidalFlow", "abrasive1Flow", "abrasive2Flow",
+      "plateRpm", "jigRpm", "swingSpeed", "colloidalFlow", "abrasive1Flow", "abrasive2Flow",
       "targetShapeValue", "targetShapeAuto", "actualShapeValue", "actualShapeAuto",
       "mrTarget1", "mrActual1", "mrTarget2", "mrActual2", "mrTarget3", "mrActual3",
       "shapeK", "removalK", "factorDeltaK", "factorMrK", "plateDiameterMm", "waferDiameterMm", "centerDiameterMm",
@@ -1205,7 +1214,7 @@
     const oldStorageKey = ["lp", "70-plate-simulator-inputs-v1"].join("");
     const storageKey = "15b-s-plate-simulator-inputs-v1";
     const savedInputIds = [
-      "plateRpm", "colloidalFlow", "abrasive1Flow", "abrasive2Flow",
+      "plateRpm", "swingSpeed", "colloidalFlow", "abrasive1Flow", "abrasive2Flow",
       "targetShapeValue", "actualShapeValue",
       "mrTarget1", "mrActual1", "mrTarget2", "mrActual2", "mrTarget3", "mrActual3",
       "shapeK", "removalK", "factorDeltaK", "factorMrK",
@@ -1219,6 +1228,7 @@
       remainingSec: 0,
       plateAngle: 0,
       jigAngle: 0,
+      swingPhase: 0,
       lastFrame: performance.now(),
       startShape: 0,
       startRemoval: [0, 0, 0],
@@ -1618,9 +1628,9 @@
       el.animSpeedText.textContent = `Plate ${plateActivity ? plateRpm.toFixed(0) : 0} / Jig ${jigActivity ? jigRpm.toFixed(0) : 0} rpm`;
       el.plateDisk.style.transform = `translate(-50%, -50%) rotate(${state.plateAngle}deg)`;
       const geometry = geometryInputs();
-      const sweepHz = clamp(jigRpm / 180, 0.04, 0.38);
-      const sweepPhase = now / 1000 * sweepHz * Math.PI * 2;
-      const swingPosition = Math.sin(sweepPhase) * jigActivity;
+      const swingCyclesPerMinute = clamp(num(el.swingSpeed, 6), 0, 30);
+      state.swingPhase = (state.swingPhase + dt * swingCyclesPerMinute / 60 * Math.PI * 2 * jigActivity) % (Math.PI * 2);
+      const swingPosition = Math.sin(state.swingPhase) * jigActivity;
       jigHolders.forEach((holder, index) => {
         holder.style.transform = "translate(-50%, -50%)";
         const rockDeg = swingPosition * (jigSwingLimits[index] || 0);
