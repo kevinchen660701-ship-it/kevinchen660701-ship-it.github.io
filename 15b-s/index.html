@@ -533,66 +533,92 @@
     .slurry-nozzle {
       position: absolute;
       z-index: 6;
-      width: 128px;
-      height: 62px;
+      width: 98px;
+      height: 100px;
       pointer-events: none;
-      opacity: .9;
+      transform: translate(-84px, -88px);
+      --flow-duration: 1.3s;
+      --flow-opacity: .6;
     }
 
-    .slurry-one {
-      left: calc(50% - 214px);
-      top: 9%;
-      transform: rotate(0deg);
-    }
-
-    .slurry-two {
-      left: calc(50% - 356px);
-      top: 58%;
-      transform: rotate(0deg);
-    }
-
-    .slurry-three {
-      left: calc(50% + 228px);
-      top: 58%;
-      transform: scaleX(-1) rotate(0deg);
+    .slurry-two, .slurry-four {
+      transform: translate(-84px, -88px) scaleX(-1);
+      transform-origin: 84px 50%;
     }
 
     .slurry-line {
       position: absolute;
       inset: 0;
-      border-top: 8px solid #657988;
-      border-right: 8px solid #657988;
-      border-radius: 0 46px 0 0;
+      width: 98px;
+      height: 65px;
+      filter: drop-shadow(0 3px 2px rgba(13, 35, 49, .35));
     }
 
-    .slurry-line::after {
-      content: "";
+    .slurry-stream {
       position: absolute;
-      right: -13px;
-      bottom: -6px;
-      width: 18px;
-      height: 12px;
-      border-radius: 6px;
-      background: linear-gradient(#d9e3ea, #718694);
-      border: 1px solid rgba(62, 78, 90, .5);
+      left: 81px;
+      top: 59px;
+      width: 6px;
+      height: 28px;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #8bd5dc55, #efffffcc, #7bcbd855);
+      transform-origin: top;
+      opacity: var(--flow-opacity);
+      animation: slurry-stream var(--flow-duration) ease-in-out infinite;
     }
 
     .slurry-drop {
       position: absolute;
-      z-index: 7;
-      right: -8px;
-      bottom: -38px;
-      width: 10px;
-      height: 18px;
+      left: 81px;
+      top: 60px;
+      width: 6px;
+      height: 9px;
+      border-radius: 45% 45% 55% 55%;
+      background: linear-gradient(120deg, #fff, #b8e9e7 50%, #68bccb);
+      box-shadow: 0 0 3px #d9ffff88;
+      animation: drop var(--flow-duration) linear infinite;
+    }
+
+    .slurry-ripple {
+      position: absolute;
+      left: 84px;
+      top: 88px;
+      width: 27px;
+      height: 12px;
+      border: 1px solid #d1f7f5;
       border-radius: 50%;
-      background: #88d6c7;
-      animation: drop 1.4s linear infinite;
+      background: radial-gradient(ellipse, #d4ffff66, transparent 70%);
+      animation: slurry-ripple var(--flow-duration) ease-out infinite;
+    }
+
+    .slurry-nozzle[data-flow="off"] .slurry-stream,
+    .slurry-nozzle[data-flow="off"] .slurry-drop,
+    .slurry-nozzle[data-flow="off"] .slurry-ripple {
+      visibility: hidden;
+      animation-play-state: paused;
     }
 
     @keyframes drop {
-      0% { transform: translateY(-6px); opacity: 0; }
-      25% { opacity: 1; }
-      100% { transform: translateY(70px); opacity: 0; }
+      0% { transform: translateY(0) scale(.7); opacity: 0; }
+      18% { opacity: .95; }
+      85% { transform: translateY(23px) scale(.9, 1.2); opacity: .85; }
+      100% { transform: translateY(27px) scale(1.4, .4); opacity: 0; }
+    }
+
+    @keyframes slurry-stream {
+      0%, 100% { transform: scaleX(.7); }
+      50% { transform: scaleX(1.1); }
+    }
+
+    @keyframes slurry-ripple {
+      0% { transform: translate(-50%, -50%) scale(.2); opacity: 0; }
+      25% { opacity: .7; }
+      100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .slurry-stream, .slurry-drop, .slurry-ripple { animation: none; }
+      .slurry-ripple { transform: translate(-50%, -50%); opacity: .5; }
     }
 
     .metrics {
@@ -978,17 +1004,29 @@
 
         <section class="panel sim-panel" aria-label="Simulation output">
           <div class="polisher">
-            <div class="slurry-nozzle slurry-one">
-              <div class="slurry-line"></div>
+            <div class="slurry-nozzle slurry-one" data-flow="off" aria-label="Slurry nozzle 1">
+              <svg class="slurry-line" viewBox="0 0 98 65" aria-hidden="true"><path d="M 10 14 H 53 Q 84 14 84 44 V 52" fill="none" stroke="#294b60" stroke-width="11" stroke-linecap="round"/><path d="M 10 13 H 53 Q 84 13 84 44 V 52" fill="none" stroke="#849eac" stroke-width="8" stroke-linecap="round"/><path d="M 10 11 H 53 Q 81 11 81 42" fill="none" stroke="#d7e6ed" stroke-width="2" stroke-linecap="round"/><rect x="7" y="6" width="14" height="16" rx="3" fill="#4c6c80" stroke="#b1c8d3"/><path d="M 11 8 V 20 M 17 8 V 20" stroke="#93adbc"/><rect x="75" y="48" width="18" height="11" rx="3" fill="#c1d3db" stroke="#476779"/><path d="M 78 51 H 90" stroke="#f6fbfd" stroke-width="2"/><rect x="79" y="58" width="10" height="4" rx="2" fill="#335567"/></svg>
+              <div class="slurry-stream"></div>
               <div class="slurry-drop"></div>
+              <div class="slurry-ripple"></div>
             </div>
-            <div class="slurry-nozzle slurry-two">
-              <div class="slurry-line"></div>
+            <div class="slurry-nozzle slurry-two" data-flow="off" aria-label="Slurry nozzle 2">
+              <svg class="slurry-line" viewBox="0 0 98 65" aria-hidden="true"><path d="M 10 14 H 53 Q 84 14 84 44 V 52" fill="none" stroke="#294b60" stroke-width="11" stroke-linecap="round"/><path d="M 10 13 H 53 Q 84 13 84 44 V 52" fill="none" stroke="#849eac" stroke-width="8" stroke-linecap="round"/><path d="M 10 11 H 53 Q 81 11 81 42" fill="none" stroke="#d7e6ed" stroke-width="2" stroke-linecap="round"/><rect x="7" y="6" width="14" height="16" rx="3" fill="#4c6c80" stroke="#b1c8d3"/><path d="M 11 8 V 20 M 17 8 V 20" stroke="#93adbc"/><rect x="75" y="48" width="18" height="11" rx="3" fill="#c1d3db" stroke="#476779"/><path d="M 78 51 H 90" stroke="#f6fbfd" stroke-width="2"/><rect x="79" y="58" width="10" height="4" rx="2" fill="#335567"/></svg>
+              <div class="slurry-stream"></div>
               <div class="slurry-drop"></div>
+              <div class="slurry-ripple"></div>
             </div>
-            <div class="slurry-nozzle slurry-three">
-              <div class="slurry-line"></div>
+            <div class="slurry-nozzle slurry-three" data-flow="off" aria-label="Slurry nozzle 3">
+              <svg class="slurry-line" viewBox="0 0 98 65" aria-hidden="true"><path d="M 10 14 H 53 Q 84 14 84 44 V 52" fill="none" stroke="#294b60" stroke-width="11" stroke-linecap="round"/><path d="M 10 13 H 53 Q 84 13 84 44 V 52" fill="none" stroke="#849eac" stroke-width="8" stroke-linecap="round"/><path d="M 10 11 H 53 Q 81 11 81 42" fill="none" stroke="#d7e6ed" stroke-width="2" stroke-linecap="round"/><rect x="7" y="6" width="14" height="16" rx="3" fill="#4c6c80" stroke="#b1c8d3"/><path d="M 11 8 V 20 M 17 8 V 20" stroke="#93adbc"/><rect x="75" y="48" width="18" height="11" rx="3" fill="#c1d3db" stroke="#476779"/><path d="M 78 51 H 90" stroke="#f6fbfd" stroke-width="2"/><rect x="79" y="58" width="10" height="4" rx="2" fill="#335567"/></svg>
+              <div class="slurry-stream"></div>
               <div class="slurry-drop"></div>
+              <div class="slurry-ripple"></div>
+            </div>
+            <div class="slurry-nozzle slurry-four" data-flow="off" aria-label="Slurry nozzle 4">
+              <svg class="slurry-line" viewBox="0 0 98 65" aria-hidden="true"><path d="M 10 14 H 53 Q 84 14 84 44 V 52" fill="none" stroke="#294b60" stroke-width="11" stroke-linecap="round"/><path d="M 10 13 H 53 Q 84 13 84 44 V 52" fill="none" stroke="#849eac" stroke-width="8" stroke-linecap="round"/><path d="M 10 11 H 53 Q 81 11 81 42" fill="none" stroke="#d7e6ed" stroke-width="2" stroke-linecap="round"/><rect x="7" y="6" width="14" height="16" rx="3" fill="#4c6c80" stroke="#b1c8d3"/><path d="M 11 8 V 20 M 17 8 V 20" stroke="#93adbc"/><rect x="75" y="48" width="18" height="11" rx="3" fill="#c1d3db" stroke="#476779"/><path d="M 78 51 H 90" stroke="#f6fbfd" stroke-width="2"/><rect x="79" y="58" width="10" height="4" rx="2" fill="#335567"/></svg>
+              <div class="slurry-stream"></div>
+              <div class="slurry-drop"></div>
+              <div class="slurry-ripple"></div>
             </div>
             <div class="plate-disk" id="plateDisk"></div>
             <div class="jig one">
@@ -1162,7 +1200,6 @@
     const jigRotors = Array.from(document.querySelectorAll(".jig-rotor"));
     const zeroButtons = Array.from(document.querySelectorAll("[data-zero]"));
     const slurryNozzles = Array.from(document.querySelectorAll(".slurry-nozzle"));
-    const slurryDrops = Array.from(document.querySelectorAll(".slurry-drop"));
     const defaultGeometry = {
       plateOD: 420,
       centerOD: 140,
@@ -1449,17 +1486,14 @@
       const flow = clamp(num(el.colloidalFlow), 0, 100);
       const activeFlow = state.unitActive.slurry ? flow : 0;
       const activity = activeFlow / 100;
-      const duration = 1.9 - activity * 1.5;
-      slurryDrops.forEach((drop, index) => {
-        drop.style.animationDuration = `${duration.toFixed(2)}s`;
-        drop.style.animationDelay = `${index * -duration / 3}s`;
-        drop.style.animationPlayState = activeFlow <= 0 ? "paused" : "running";
-        drop.style.opacity = activeFlow <= 0 ? "0" : String(0.45 + activity * 0.55);
-        drop.style.height = `${12 + activity * 14}px`;
-        drop.style.width = `${7 + activity * 6}px`;
-      });
-      slurryNozzles.forEach((nozzle) => {
-        nozzle.style.opacity = String(state.unitActive.slurry ? 0.45 + activity * 0.55 : 0.25);
+      const duration = 1.6 - activity * 1.1;
+      slurryNozzles.forEach((nozzle, index) => {
+        nozzle.dataset.flow = activeFlow > 0 ? "on" : "off";
+        nozzle.style.setProperty("--flow-duration", duration.toFixed(2) + "s");
+        nozzle.style.setProperty("--flow-opacity", String(.25 + activity * .55));
+        nozzle.querySelectorAll(".slurry-drop, .slurry-ripple").forEach(part => {
+          part.style.animationDelay = (-index * duration / 4).toFixed(2) + "s";
+        });
       });
     }
 
@@ -1538,6 +1572,11 @@
         ...jigHolders.flatMap(holder => [holder.offsetWidth, holder.offsetHeight])].join(",");
       if (layoutKey === jigLayoutKey) return;
       jigLayoutKey = layoutKey;
+      const outlets = [[-.48, -.48], [.48, -.48], [-.48, .48], [.48, .48]];
+      slurryNozzles.forEach((nozzle, index) => {
+        nozzle.style.left = (el.plateDisk.offsetLeft + outlets[index][0] * plateRadius) + "px";
+        nozzle.style.top = (el.plateDisk.offsetTop + outlets[index][1] * plateRadius) + "px";
+      });
       const directions = [[0, -1], [-1, 0], [1, 0], [0, 1]];
       jigSwingLimits = jigHolders.map((holder, index) => {
         const radius = holder.offsetWidth / 2;
