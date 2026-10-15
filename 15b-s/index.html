@@ -1569,11 +1569,12 @@
       if (layoutKey === jigLayoutKey) return;
       jigLayoutKey = layoutKey;
       // Land between the Jig stations; keep the pipe bodies outside the plate.
-      const outlets = [[-.622, -.622, 315], [.622, -.622, 45], [-.622, .622, 225], [.622, .622, 135]];
+      const outletAngles = [205, 295, 115, 25];
       slurryNozzles.forEach((nozzle, index) => {
-        nozzle.style.left = (el.plateDisk.offsetLeft + outlets[index][0] * plateRadius) + "px";
-        nozzle.style.top = (el.plateDisk.offsetTop + outlets[index][1] * plateRadius) + "px";
-        nozzle.style.setProperty("--nozzle-angle", outlets[index][2] + "deg");
+        const angle = outletAngles[index] * Math.PI / 180;
+        nozzle.style.left = (el.plateDisk.offsetLeft + Math.cos(angle) * .88 * plateRadius) + "px";
+        nozzle.style.top = (el.plateDisk.offsetTop + Math.sin(angle) * .88 * plateRadius) + "px";
+        nozzle.style.setProperty("--nozzle-angle", (outletAngles[index] + 90) + "deg");
         nozzle.style.setProperty("--nozzle-scale", Math.min(1, plateRadius / 200));
       });
       const directions = [[0, -1], [-1, 0], [1, 0], [0, 1]];
